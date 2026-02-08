@@ -1,0 +1,29 @@
+# Backend dependencies for OCT B-Scan Labeler
+# FastAPI web framework and server
+
+fastapi==0.109.0
+uvicorn[standard]==0.27.0
+python-multipart==0.0.6
+
+# Database (SQLAlchemy + SQLite async support)
+sqlalchemy==2.0.25
+aiosqlite==0.19.0
+
+# Data validation
+pydantic==2.5.3
+pydantic-settings==2.1.0
+
+# Image processing
+pillow==10.2.0
+numpy==1.26.3
+
+# Testing
+pytest==7.4.4
+pytest-asyncio==0.23.3
+pytest-cov==4.1.0
+httpx==0.26.0
+
+# Code quality
+black==24.1.1
+ruff==0.1.14
+mypy==1.8.0
