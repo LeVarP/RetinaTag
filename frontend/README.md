@@ -1,185 +1,340 @@
 # OCT B-Scan Labeler - Frontend
 
-React + TypeScript frontend for OCT B-scan labeling application.
+React + TypeScript frontend for OCT B-scan labeling application. Provides keyboard-first interface for rapid medical image labeling.
 
-## Structure
-
-```
-frontend/
-├── src/
-│   ├── main.tsx             # Application entry point
-│   ├── App.tsx              # Root component with routing
-│   ├── pages/               # Page components
-│   │   ├── ScanListPage.tsx
-│   │   ├── LabelingPage.tsx
-│   │   └── StatsPage.tsx
-│   ├── components/          # Reusable UI components
-│   │   ├── BScanViewer.tsx
-│   │   ├── NavigationControls.tsx
-│   │   ├── LabelingControls.tsx
-│   │   └── ...
-│   ├── hooks/               # Custom React hooks
-│   │   ├── useKeyboardNav.ts
-│   │   ├── usePrefetch.ts
-│   │   └── useLabeling.ts
-│   ├── services/            # API client and utilities
-│   │   └── api.ts
-│   ├── types/               # TypeScript type definitions
-│   ├── styles/              # CSS Modules (NO inline styles)
-│   │   ├── global.css
-│   │   └── components/
-│   └── utils/               # Utility functions
-├── tests/                   # Test suite
-│   ├── unit/
-│   └── e2e/
-├── public/                  # Static assets
-├── package.json
-├── vite.config.ts          # Vite configuration
-├── vitest.config.ts        # Vitest configuration
-├── playwright.config.ts    # Playwright E2E configuration
-└── .env.example            # Environment variables template
-
-## Setup
-
-### 1. Install dependencies
+## Quick Start
 
 ```bash
-cd frontend
+# Install dependencies
 npm install
-```
 
-### 2. Configure environment
-
-```bash
-cp .env.example .env
-# Edit .env with your backend URL
-```
-
-### 3. Run development server
-
-```bash
+# Run development server
 npm run dev
 ```
 
-Application will be available at http://localhost:5173
+Access at http://localhost:5173
 
-## Available Scripts
+## Features
 
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run preview` - Preview production build
-- `npm test` - Run unit tests with Vitest
-- `npm run test:ui` - Run tests with UI
-- `npm run test:e2e` - Run E2E tests with Playwright
-- `npm run lint` - Lint code with ESLint
-- `npm run lint:fix` - Fix linting errors
-- `npm run format` - Format code with Prettier
-- `npm run format:check` - Check code formatting
-- `npm run typecheck` - Type check with TypeScript
+- **Keyboard-First Navigation**: Arrow keys + A/S hotkeys (zero mouse dependency)
+- **Optimistic UI Updates**: Instant feedback on label changes
+- **Smart Prefetching**: Background loading of next 10 frames
+- **Progress Tracking**: Real-time statistics and completion indicators
+- **Responsive Design**: Works on desktop and tablet
 
-## Pages
+## Technology Stack
 
-### Scan List Page (`/`)
-- Displays all available scans
-- Shows progress indicators for each scan
-- Links to labeling interface
+- **Framework**: React 18
+- **Language**: TypeScript (strict mode)
+- **Build Tool**: Vite
+- **Routing**: React Router v6
+- **State Management**: TanStack Query v5
+- **Styling**: CSS Modules (NO inline styles)
+- **Testing**: Vitest + Playwright
 
-### Labeling Page (`/scan/:scanId`)
-- Main labeling interface
-- Keyboard navigation (Arrow keys)
-- Hotkey labeling (A = Healthy, S = Unhealthy)
-- Auto-advance after labeling
-- Prefetching for smooth navigation
+## Project Structure
 
-### Statistics Page (`/stats`)
-- Global statistics dashboard
-- Per-scan progress breakdown
+```
+frontend/src/
+├── pages/           # Page components
+│   ├── ScanListPage.tsx      # Scan list with progress
+│   ├── LabelingPage.tsx      # Main labeling interface
+│   └── StatsPage.tsx         # Statistics dashboard
+├── components/      # Reusable UI components
+│   ├── ScanCard.tsx          # Scan card with stats
+│   ├── ProgressBar.tsx       # Progress visualization
+│   ├── BScanViewer.tsx       # Image viewer
+│   ├── NavigationControls.tsx
+│   └── LabelingControls.tsx
+├── hooks/           # Custom React hooks
+│   ├── useKeyboardNav.ts     # Keyboard event handling
+│   ├── usePrefetch.ts        # Image prefetching
+│   └── useLabeling.ts        # Label mutations
+├── services/        # External services
+│   └── api.ts                # Axios API client
+├── types/           # TypeScript types
+│   └── index.ts              # All type definitions
+└── styles/          # Global styles
+    └── global.css            # CSS variables, base styles
+```
 
-## Key Components
+## Development
 
-### BScanViewer
-Displays B-scan images with loading states and label badges.
+### Available Scripts
 
-### NavigationControls
-Previous/Next buttons, index display, mode toggle.
+```bash
+npm run dev          # Start dev server (port 5173)
+npm run build        # Build for production
+npm run preview      # Preview production build
+npm run lint         # Run ESLint
+npm run format       # Run Prettier
+npm run typecheck    # TypeScript type checking
+npm test             # Run unit tests (Vitest)
+npm run test:e2e     # Run E2E tests (Playwright)
+```
 
-### LabelingControls
-Healthy/Unhealthy buttons with keyboard shortcut hints.
+### Code Style Rules
+
+**CRITICAL**:
+- ❌ **NO inline styles** - use CSS Modules only
+- ✅ One component per file
+- ✅ All comments in English
+- ✅ TypeScript strict mode
+- ✅ Every file starts with docstring
+
+**Example**:
+```tsx
+// ❌ WRONG - inline styles
+<div style={{ color: 'red' }}>Hello</div>
+
+// ✅ CORRECT - CSS Module
+import styles from './MyComponent.module.css';
+<div className={styles.error}>Hello</div>
+```
+
+## API Integration
+
+### API Client (`services/api.ts`)
+
+```typescript
+import { api } from '@/services/api';
+
+// Fetch scans
+const scans = await api.getScans();
+
+// Get B-scan
+const bscan = await api.getBScan(scanId, index);
+
+// Update label
+await api.updateLabel(bscanId, { label: 1 }); // 1=healthy, 2=unhealthy
+
+// Get preview URL
+const url = api.getPreviewUrl(scanId, index);
+```
+
+### React Query Integration
+
+```typescript
+// Fetch with caching
+const { data, isLoading } = useQuery({
+  queryKey: ['scans'],
+  queryFn: api.getScans,
+});
+
+// Mutation with optimistic updates
+const mutation = useMutation({
+  mutationFn: (label) => api.updateLabel(bscanId, { label }),
+  onMutate: async (newLabel) => {
+    // Optimistic update
+    queryClient.setQueryData(['bscan', id], { ...old, label: newLabel });
+  },
+});
+```
+
+## Keyboard Shortcuts
+
+| Key | Action |
+|-----|--------|
+| `←` | Previous B-scan |
+| `→` | Next B-scan |
+| `A` | Label as Healthy |
+| `S` | Label as Unhealthy |
+
+**Auto-advance**: After labeling, automatically moves to next frame (respects navigation mode).
+
+## Navigation Modes
+
+1. **Sequential**: Navigate through all B-scans (0 → 1 → 2 → ... → 349)
+2. **Unlabeled Only**: Skip labeled B-scans, jump to next unlabeled
+
+Toggle mode with button in NavigationControls component.
 
 ## Custom Hooks
 
 ### useKeyboardNav
-Handles keyboard events for navigation and labeling.
+
+Handles global keyboard events for navigation and labeling.
+
+```typescript
+useKeyboardNav({
+  onNext: () => console.log('Next'),
+  onPrev: () => console.log('Previous'),
+  onLabelHealthy: () => console.log('Label: Healthy'),
+  onLabelUnhealthy: () => console.log('Label: Unhealthy'),
+  enabled: true,
+});
+```
 
 ### usePrefetch
-Implements prefetching strategy for next K images.
+
+Prefetches next K images in background using Image API.
+
+```typescript
+usePrefetch({
+  scanId: 'ABC123',
+  currentIndex: 42,
+  totalBScans: 350,
+  prefetchCount: 10,
+  enabled: true,
+});
+```
 
 ### useLabeling
-Manages label updates and auto-advance logic.
 
-## Styling
+Manages label mutations with optimistic UI and auto-advance.
 
-**IMPORTANT**: NO inline styles allowed.
+```typescript
+const { labelAsHealthy, labelAsUnhealthy, isLoading } = useLabeling({
+  scanId: 'ABC123',
+  bscanId: 123,
+  onSuccess: () => console.log('Auto-advancing...'),
+});
+```
 
-- Use CSS Modules (`.module.css`) for component styles
-- Import styles: `import styles from './Component.module.css'`
-- Global styles in `src/styles/global.css`
+## Component Patterns
 
-Example:
+### CSS Modules
+
+Every component has its own CSS Module:
+
+```
+MyComponent.tsx
+MyComponent.module.css
+```
+
+Usage:
+```tsx
+import styles from './MyComponent.module.css';
+
+function MyComponent() {
+  return <div className={styles.container}>...</div>;
+}
+```
+
+### Loading States
 
 ```tsx
-// Component.tsx
-import styles from '@/styles/components/Component.module.css'
-
-export const Component = () => (
-  <div className={styles.container}>Content</div>
-)
+if (isLoading) {
+  return (
+    <div className={styles.loading}>
+      <div className={styles.spinner} />
+      <p>Loading...</p>
+    </div>
+  );
+}
 ```
+
+### Error Handling
+
+```tsx
+if (isError) {
+  return (
+    <div className={styles.error}>
+      <h2>Error</h2>
+      <p>{error.message}</p>
+      <button onClick={retry}>Retry</button>
+    </div>
+  );
+}
+```
+
+## TypeScript Types
+
+All types defined in `src/types/index.ts`:
+
+```typescript
+export interface BScan {
+  id: number;
+  scan_id: string;
+  bscan_index: number;
+  label: Label;
+  preview_url: string | null;
+  prev_index: number | null;
+  next_index: number | null;
+  next_unlabeled_index: number | null;
+}
+
+export enum Label {
+  Unlabeled = 0,
+  Healthy = 1,
+  Unhealthy = 2,
+}
+```
+
+## Build & Deployment
+
+### Production Build
+
+```bash
+npm run build
+# Output: dist/
+```
+
+### Docker Build
+
+```bash
+docker build -f docker/frontend.Dockerfile -t oct-labeler-frontend .
+```
+
+### Environment Variables
+
+Create `.env` file:
+
+```env
+VITE_API_BASE_URL=/api/v1
+```
+
+In production, API requests go to `/api/v1` which nginx proxies to backend.
 
 ## Testing
 
-### Unit Tests
-
-Component and hook tests with Vitest + Testing Library:
+### Unit Tests (Vitest)
 
 ```bash
 npm test
 ```
 
-### E2E Tests
+Test files: `*.test.ts`, `*.test.tsx`
 
-End-to-end workflow tests with Playwright:
+### E2E Tests (Playwright)
 
 ```bash
 npm run test:e2e
 ```
 
-## Code Quality
+Test files: `tests/e2e/*.spec.ts`
 
-Lint:
+## Performance Optimization
 
+1. **Code Splitting**: Lazy load routes
+2. **React Query Caching**: 5-minute stale time
+3. **Image Prefetching**: Next 10 frames
+4. **Optimistic Updates**: Instant UI feedback
+5. **CSS Modules**: Scoped styles, tree-shakeable
+
+## Troubleshooting
+
+### Port already in use
 ```bash
-npm run lint
-npm run lint:fix
+# Change port in vite.config.ts
+server: { port: 3000 }
 ```
 
-Format:
+### API connection refused
+Check `VITE_API_BASE_URL` in `.env` and ensure backend is running.
 
-```bash
-npm run format
-npm run format:check
-```
-
-Type check:
-
+### Type errors
 ```bash
 npm run typecheck
 ```
 
-## API Integration
+### Build fails
+```bash
+rm -rf node_modules dist
+npm install
+npm run build
+```
 
-The frontend uses Axios with TanStack Query for API communication.
+---
 
-Base URL is configured via `VITE_API_BASE_URL` environment variable.
-
-See `src/services/api.ts` for API client implementation.
+For more information, see the [root README](../README.md).
