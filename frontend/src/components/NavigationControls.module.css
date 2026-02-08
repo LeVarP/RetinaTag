@@ -1,0 +1,123 @@
+/**
+ * NavigationControls component styles.
+ */
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  align-items: center;
+}
+
+.navigation {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-lg);
+}
+
+.navButton {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-lg);
+  background-color: var(--color-primary);
+  color: white;
+  font-weight: 500;
+  border-radius: var(--radius-sm);
+  transition: background-color 0.2s, opacity 0.2s;
+}
+
+.navButton:hover:not(:disabled) {
+  background-color: var(--color-primary-hover);
+}
+
+.navButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.arrow {
+  font-size: var(--font-size-lg);
+}
+
+.buttonText {
+  font-size: var(--font-size-base);
+}
+
+.counter {
+  display: flex;
+  align-items: baseline;
+  gap: var(--spacing-xs);
+  font-size: var(--font-size-xl);
+  font-weight: 600;
+  min-width: 120px;
+  justify-content: center;
+}
+
+.current {
+  color: var(--color-primary);
+}
+
+.separator {
+  color: var(--color-text-secondary);
+}
+
+.total {
+  color: var(--color-text-secondary);
+}
+
+.modeToggle {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.modeButton {
+  padding: var(--spacing-sm) var(--spacing-md);
+  background-color: var(--color-surface);
+  color: var(--color-text);
+  font-weight: 500;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  transition: all 0.2s;
+}
+
+.modeButton:hover {
+  background-color: var(--color-border);
+}
+
+.modeButton.active {
+  background-color: var(--color-primary);
+  color: white;
+  border-color: var(--color-primary);
+}
+
+.hint {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+kbd {
+  padding: 2px 6px;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-family: monospace;
+  font-size: var(--font-size-sm);
+}
+
+@media (max-width: 768px) {
+  .navigation {
+    flex-direction: column;
+    gap: var(--spacing-sm);
+  }
+
+  .buttonText {
+    display: none;
+  }
+
+  .modeToggle {
+    flex-direction: column;
+    gap: var(--spacing-sm);
+  }
+}

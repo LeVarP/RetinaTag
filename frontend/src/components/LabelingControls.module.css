@@ -1,0 +1,104 @@
+/**
+ * LabelingControls component styles.
+ */
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  padding: var(--spacing-lg);
+  background-color: white;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.title {
+  margin: 0;
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  text-align: center;
+}
+
+.buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-md);
+}
+
+.labelButton {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-lg);
+  border: 2px solid transparent;
+  border-radius: var(--radius-md);
+  transition: all 0.2s;
+  position: relative;
+}
+
+.labelButton:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.labelButton:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.labelButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.labelButton.healthy {
+  background-color: var(--color-healthy);
+  color: white;
+}
+
+.labelButton.healthy:hover:not(:disabled) {
+  background-color: #45a049;
+}
+
+.labelButton.unhealthy {
+  background-color: var(--color-unhealthy);
+  color: white;
+}
+
+.labelButton.unhealthy:hover:not(:disabled) {
+  background-color: #e53935;
+}
+
+.icon {
+  font-size: 32px;
+  font-weight: bold;
+}
+
+.label {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+}
+
+.hotkey {
+  padding: 4px 8px;
+  background-color: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: var(--radius-sm);
+  font-family: monospace;
+  font-size: var(--font-size-sm);
+  font-weight: bold;
+}
+
+.hint {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  text-align: center;
+}
+
+@media (max-width: 768px) {
+  .buttons {
+    grid-template-columns: 1fr;
+  }
+}
