@@ -1,0 +1,53 @@
+/**
+ * App component styles.
+ */
+
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-header {
+  background-color: var(--color-primary);
+  color: white;
+  padding: var(--spacing-md) 0;
+  box-shadow: var(--shadow-md);
+}
+
+.app-header .container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.app-header h1 {
+  font-size: var(--font-size-xl);
+  margin: 0;
+}
+
+.app-nav {
+  display: flex;
+  gap: var(--spacing-lg);
+}
+
+.app-nav a {
+  color: white;
+  font-weight: 500;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--radius-sm);
+  transition: background-color 0.2s;
+}
+
+.app-nav a:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.app-nav a.active {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.app-main {
+  flex: 1;
+  padding: var(--spacing-xl) 0;
+}
