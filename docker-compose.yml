@@ -1,0 +1,56 @@
+# Docker Compose configuration for OCT B-Scan Labeler
+# Orchestrates backend (FastAPI) and frontend (nginx) services
+
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: docker/backend.Dockerfile
+    container_name: oct-labeler-backend
+    ports:
+      - "8000:8000"
+    volumes:
+      # Mount data directory for persistent storage
+      - ./data:/app/data
+      # Mount scripts for CLI access
+      - ./backend/scripts:/app/scripts
+    environment:
+      - DATABASE_URL=sqlite+aiosqlite:////app/data/database/oct_labeler.db
+      - DATA_DIR=/app/data
+      - CACHE_DIR=/app/data/cache
+      - SCANS_DIR=/app/data/scans
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+
+  frontend:
+    build:
+      context: .
+      dockerfile: docker/frontend.Dockerfile
+    container_name: oct-labeler-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+
+volumes:
+  # Named volume for data persistence
+  data:
+    driver: local
+
+networks:
+  default:
+    name: oct-labeler-network
