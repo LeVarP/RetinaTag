@@ -71,6 +71,9 @@ frontend/dist/
 frontend/build/
 *.tsbuildinfo
 
+# ===== CLAUDE CODE =====
+.claude/
+
 # ===== IDEs and Editors =====
 .vscode/
 .idea/
