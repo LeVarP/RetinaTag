@@ -4,6 +4,10 @@ A web application for rapid labeling of OCT (Optical Coherence Tomography) B-sca
 
 All code was generated automatically using [Claude Code](https://claude.ai/claude-code) (Anthropic).
 
+<img width="45%"  alt="Main page" src="https://github.com/user-attachments/assets/5f5ccb2b-7fd5-4b9e-b622-fa1540e77e37" />
+<img width="48%"  alt="Statistics" src="https://github.com/user-attachments/assets/554c0a7f-04c5-4ea5-bbca-c7f873257936" />
+
+
 ## Getting Started
 
 See **[setup/SETUP.md](setup/SETUP.md)** for step-by-step deployment instructions.
