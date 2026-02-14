@@ -24,14 +24,15 @@ export const LabelNames: Record<Label, string> = {
 
 /**
  * B-scan statistics for a scan.
+ * Field names match backend ScanStats schema.
  */
 export interface ScanStats {
   total_bscans: number;
-  labeled_bscans: number;
-  healthy_count: number;
-  unhealthy_count: number;
-  unlabeled_count: number;
-  completion_percentage: number;
+  labeled: number;
+  unlabeled: number;
+  healthy: number;
+  unhealthy: number;
+  percent_complete: number;
 }
 
 /**
@@ -69,15 +70,16 @@ export interface BScanLabelUpdate {
 
 /**
  * Global statistics across all scans.
+ * Field names match backend GlobalStats schema.
  */
 export interface GlobalStats {
   total_scans: number;
   total_bscans: number;
-  labeled_bscans: number;
-  healthy_count: number;
-  unhealthy_count: number;
-  unlabeled_count: number;
-  completion_percentage: number;
+  total_labeled: number;
+  total_unlabeled: number;
+  total_healthy: number;
+  total_unhealthy: number;
+  percent_complete: number;
 }
 
 /**
@@ -107,3 +109,51 @@ export const DEFAULT_HOTKEYS: KeyboardHotkeys = {
   labelHealthy: 'a',
   labelUnhealthy: 's',
 };
+
+// ===== AUTH TYPES =====
+
+export interface User {
+  id: number;
+  username: string;
+  is_active: boolean;
+  is_admin: boolean;
+  created_at: string;
+}
+
+export interface AuthStatus {
+  authenticated: boolean;
+  user: User | null;
+}
+
+export interface LoginCredentials {
+  username: string;
+  password: string;
+}
+
+export interface RegisterCredentials {
+  username: string;
+  password: string;
+}
+
+export interface PasswordChangeRequest {
+  current_password: string;
+  new_password: string;
+}
+
+// ===== USER SETTINGS TYPES =====
+
+export interface UserSettings {
+  auto_advance: boolean;
+  hotkey_healthy: string;
+  hotkey_unhealthy: string;
+  hotkey_next: string;
+  hotkey_prev: string;
+}
+
+export interface UserSettingsUpdate {
+  auto_advance?: boolean;
+  hotkey_healthy?: string;
+  hotkey_unhealthy?: string;
+  hotkey_next?: string;
+  hotkey_prev?: string;
+}

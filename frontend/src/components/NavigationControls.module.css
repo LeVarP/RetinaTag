@@ -56,6 +56,32 @@
 
 .current {
   color: var(--color-primary);
+  cursor: pointer;
+  border-bottom: 2px dashed transparent;
+  transition: border-color 0.15s;
+}
+
+.current:hover {
+  border-bottom-color: var(--color-primary);
+}
+
+.indexInput {
+  width: 60px;
+  font-size: var(--font-size-xl);
+  font-weight: 600;
+  color: var(--color-primary);
+  text-align: center;
+  border: 2px solid var(--color-primary);
+  border-radius: var(--radius-sm);
+  padding: 2px 4px;
+  outline: none;
+  -moz-appearance: textfield;
+}
+
+.indexInput::-webkit-outer-spin-button,
+.indexInput::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 
 .separator {

@@ -10,7 +10,8 @@ interface ProgressBarProps {
 }
 
 function ProgressBar({ percentage, showLabel = true }: ProgressBarProps) {
-  const clampedPercentage = Math.min(100, Math.max(0, percentage));
+  const safePercentage = Number.isFinite(percentage) ? percentage : 0;
+  const clampedPercentage = Math.min(100, Math.max(0, safePercentage));
 
   return (
     <div className={styles.container}>

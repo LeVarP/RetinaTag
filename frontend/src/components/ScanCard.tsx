@@ -20,8 +20,8 @@ function ScanCard({ scan }: ScanCardProps) {
     day: 'numeric',
   });
 
-  const isComplete = stats.completion_percentage === 100;
-  const isInProgress = stats.labeled_bscans > 0 && !isComplete;
+  const isComplete = stats.percent_complete === 100;
+  const isInProgress = stats.labeled > 0 && !isComplete;
 
   return (
     <div className={styles.card}>
@@ -38,25 +38,25 @@ function ScanCard({ scan }: ScanCardProps) {
         <div className={styles.statRow}>
           <span className={styles.statLabel}>Labeled:</span>
           <span className={styles.statValue}>
-            {stats.labeled_bscans} / {stats.total_bscans}
+            {stats.labeled} / {stats.total_bscans}
           </span>
         </div>
         <div className={styles.statRow}>
           <span className={styles.statLabel}>Healthy:</span>
           <span className={`${styles.statValue} ${styles.healthy}`}>
-            {stats.healthy_count}
+            {stats.healthy}
           </span>
         </div>
         <div className={styles.statRow}>
           <span className={styles.statLabel}>Unhealthy:</span>
           <span className={`${styles.statValue} ${styles.unhealthy}`}>
-            {stats.unhealthy_count}
+            {stats.unhealthy}
           </span>
         </div>
       </div>
 
       <div className={styles.progress}>
-        <ProgressBar percentage={stats.completion_percentage} />
+        <ProgressBar percentage={stats.percent_complete} />
       </div>
 
       <div className={styles.actions}>

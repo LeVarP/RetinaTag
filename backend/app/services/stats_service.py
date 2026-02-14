@@ -64,11 +64,11 @@ class StatsService:
         return GlobalStats(
             total_scans=total_scans,
             total_bscans=total_bscans,
-            labeled_bscans=labeled_count,
-            healthy_count=healthy_count,
-            unhealthy_count=unhealthy_count,
-            unlabeled_count=unlabeled_count,
-            completion_percentage=round(completion_percentage, 2),
+            total_labeled=labeled_count,
+            total_unlabeled=unlabeled_count,
+            total_healthy=healthy_count,
+            total_unhealthy=unhealthy_count,
+            percent_complete=round(completion_percentage, 2),
         )
 
     @staticmethod

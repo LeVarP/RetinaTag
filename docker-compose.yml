@@ -16,11 +16,15 @@ services:
       - ./data:/app/data
       # Mount scripts for CLI access
       - ./backend/scripts:/app/scripts
+      # Mount OCT-500 dataset (read-only)
+      # Set OCT_DATA_PATH in .env file to your OCT-500 location
+      - ${OCT_DATA_PATH:-/data/oct-500}:/mnt/oct-data:ro
     environment:
       - DATABASE_URL=sqlite+aiosqlite:////app/data/database/oct_labeler.db
       - DATA_DIR=/app/data
       - CACHE_DIR=/app/data/cache
       - SCANS_DIR=/app/data/scans
+      - OCT_DATA_PATH=/mnt/oct-data
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8000/health')"]

@@ -5,9 +5,10 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import { api } from '@/services/api';
-import { NavigationMode } from '@/types';
+import { NavigationMode, type KeyboardHotkeys } from '@/types';
+import { useSettings } from '@/context/SettingsContext';
 import { useKeyboardNav } from '@/hooks/useKeyboardNav';
 import { usePrefetch } from '@/hooks/usePrefetch';
 import { useLabeling } from '@/hooks/useLabeling';
@@ -20,8 +21,19 @@ function LabelingPage() {
   const { scanId } = useParams<{ scanId: string }>();
   const navigate = useNavigate();
 
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const { settings, updateSettings } = useSettings();
+
+  const [currentIndex, setCurrentIndex] = useState(1);
   const [navigationMode, setNavigationMode] = useState(NavigationMode.Sequential);
+  const [imageMaxWidth, setImageMaxWidth] = useState(450);
+
+  const autoAdvance = settings.auto_advance;
+  const hotkeys: KeyboardHotkeys = {
+    nextFrame: settings.hotkey_next,
+    prevFrame: settings.hotkey_prev,
+    labelHealthy: settings.hotkey_healthy,
+    labelUnhealthy: settings.hotkey_unhealthy,
+  };
 
   // Fetch scan stats to get total B-scans
   const { data: scanStats } = useQuery({
@@ -30,16 +42,18 @@ function LabelingPage() {
     enabled: !!scanId,
   });
 
-  // Fetch current B-scan
+  // Fetch current B-scan (keep previous data visible while loading next)
   const {
     data: bscan,
     isLoading,
+    isFetching,
     isError,
     error,
   } = useQuery({
     queryKey: ['bscan', scanId, currentIndex],
     queryFn: () => api.getBScan(scanId!, currentIndex),
     enabled: !!scanId,
+    placeholderData: keepPreviousData,
   });
 
   const totalBScans = scanStats?.total_bscans || 0;
@@ -75,7 +89,8 @@ function LabelingPage() {
   const { labelAsHealthy, labelAsUnhealthy, isLoading: isLabeling } = useLabeling({
     scanId: scanId!,
     bscanId: bscan?.id,
-    onSuccess: handleAutoAdvance,
+    currentIndex,
+    onSuccess: autoAdvance ? handleAutoAdvance : undefined,
   });
 
   // Navigation handlers
@@ -112,12 +127,13 @@ function LabelingPage() {
     onPrev: handlePrev,
     onLabelHealthy: labelAsHealthy,
     onLabelUnhealthy: labelAsUnhealthy,
+    hotkeys,
     enabled: !!bscan && !isLabeling,
   });
 
-  // Reset to index 0 when scan changes
+  // Reset to index 1 when scan changes (B-scans start at index 1)
   useEffect(() => {
-    setCurrentIndex(0);
+    setCurrentIndex(1);
   }, [scanId]);
 
   if (!scanId) {
@@ -125,7 +141,7 @@ function LabelingPage() {
     return null;
   }
 
-  if (isLoading) {
+  if (isLoading && !bscan) {
     return (
       <div className="container">
         <div className={styles.loading}>
@@ -169,7 +185,9 @@ function LabelingPage() {
             previewUrl={bscan.preview_url || ''}
             label={bscan.label}
             bscanIndex={bscan.bscan_index}
-            isLoading={isLabeling}
+            isLoading={isLabeling || isFetching}
+            maxWidth={imageMaxWidth}
+            onMaxWidthChange={setImageMaxWidth}
           />
         </div>
 
@@ -181,15 +199,21 @@ function LabelingPage() {
             hasNext={hasNext}
             hasNextUnlabeled={hasNextUnlabeled}
             navigationMode={navigationMode}
+            autoAdvance={autoAdvance}
             onPrev={handlePrev}
             onNext={handleNext}
+            onGoTo={setCurrentIndex}
             onToggleMode={toggleNavigationMode}
+            onToggleAutoAdvance={() => updateSettings({ auto_advance: !autoAdvance })}
           />
 
           <LabelingControls
             onLabelHealthy={labelAsHealthy}
             onLabelUnhealthy={labelAsUnhealthy}
+            currentLabel={bscan.label}
             isLoading={isLabeling}
+            hotkeyHealthy={settings.hotkey_healthy}
+            hotkeyUnhealthy={settings.hotkey_unhealthy}
           />
         </div>
       </div>

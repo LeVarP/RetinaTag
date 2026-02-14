@@ -127,3 +127,64 @@ def calculate_percent_complete(labeled: int, total: int) -> float:
     if total == 0:
         return 0.0
     return round((labeled / total) * 100, 2)
+
+
+# ===== AUTH SCHEMAS =====
+
+class UserRegister(BaseModel):
+    """Schema for user registration (admin-only)."""
+    username: str = Field(..., min_length=3, max_length=50, pattern=r"^[a-zA-Z0-9_]+$")
+    password: str = Field(..., min_length=4, max_length=128)
+
+
+class UserLogin(BaseModel):
+    """Schema for user login."""
+    username: str = Field(..., min_length=1)
+    password: str = Field(..., min_length=1)
+
+
+class UserResponse(BaseModel):
+    """Schema for user data in responses (no password)."""
+    id: int
+    username: str
+    is_active: bool
+    is_admin: bool
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class PasswordChange(BaseModel):
+    """Schema for changing password."""
+    current_password: str = Field(..., min_length=1)
+    new_password: str = Field(..., min_length=4, max_length=128)
+
+
+class AuthStatusResponse(BaseModel):
+    """Schema for auth status check."""
+    authenticated: bool
+    user: Optional[UserResponse] = None
+
+
+# ===== USER SETTINGS SCHEMAS =====
+
+class UserSettingsResponse(BaseModel):
+    """Schema for user settings response."""
+    auto_advance: bool
+    hotkey_healthy: str
+    hotkey_unhealthy: str
+    hotkey_next: str
+    hotkey_prev: str
+
+    class Config:
+        from_attributes = True
+
+
+class UserSettingsUpdate(BaseModel):
+    """Schema for partial settings update."""
+    auto_advance: Optional[bool] = None
+    hotkey_healthy: Optional[str] = Field(None, max_length=20)
+    hotkey_unhealthy: Optional[str] = Field(None, max_length=20)
+    hotkey_next: Optional[str] = Field(None, max_length=20)
+    hotkey_prev: Optional[str] = Field(None, max_length=20)

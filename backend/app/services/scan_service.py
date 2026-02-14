@@ -108,11 +108,11 @@ class ScanService:
 
         return ScanStats(
             total_bscans=total_bscans,
-            labeled_bscans=labeled_count,
-            healthy_count=healthy_count,
-            unhealthy_count=unhealthy_count,
-            unlabeled_count=unlabeled_count,
-            completion_percentage=round(completion_percentage, 2),
+            labeled=labeled_count,
+            unlabeled=unlabeled_count,
+            healthy=healthy_count,
+            unhealthy=unhealthy_count,
+            percent_complete=round(completion_percentage, 2),
         )
 
     @staticmethod

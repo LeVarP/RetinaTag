@@ -70,35 +70,35 @@ function StatsPage() {
         </div>
 
         <div className={styles.statCard}>
-          <div className={styles.statValue}>{globalStats.labeled_bscans}</div>
+          <div className={styles.statValue}>{globalStats.total_labeled}</div>
           <div className={styles.statLabel}>Labeled B-scans</div>
         </div>
 
         <div className={styles.statCard}>
           <div className={`${styles.statValue} ${styles.healthy}`}>
-            {globalStats.healthy_count}
+            {globalStats.total_healthy}
           </div>
           <div className={styles.statLabel}>Healthy</div>
         </div>
 
         <div className={styles.statCard}>
           <div className={`${styles.statValue} ${styles.unhealthy}`}>
-            {globalStats.unhealthy_count}
+            {globalStats.total_unhealthy}
           </div>
           <div className={styles.statLabel}>Unhealthy</div>
         </div>
 
         <div className={styles.statCard}>
-          <div className={styles.statValue}>{globalStats.unlabeled_count}</div>
+          <div className={styles.statValue}>{globalStats.total_unlabeled}</div>
           <div className={styles.statLabel}>Unlabeled</div>
         </div>
       </div>
 
       <div className={styles.overallProgress}>
         <h3>Overall Completion</h3>
-        <ProgressBar percentage={globalStats.completion_percentage} />
+        <ProgressBar percentage={globalStats.percent_complete} />
         <p className={styles.progressText}>
-          {globalStats.labeled_bscans} / {globalStats.total_bscans} B-scans labeled
+          {globalStats.total_labeled} / {globalStats.total_bscans} B-scans labeled
         </p>
       </div>
 
@@ -121,20 +121,20 @@ function StatsPage() {
                 <strong>{scan.scan_id}</strong>
               </div>
               <div className={styles.tableCell}>{scan.stats.total_bscans}</div>
-              <div className={styles.tableCell}>{scan.stats.labeled_bscans}</div>
+              <div className={styles.tableCell}>{scan.stats.labeled}</div>
               <div className={`${styles.tableCell} ${styles.healthy}`}>
-                {scan.stats.healthy_count}
+                {scan.stats.healthy}
               </div>
               <div className={`${styles.tableCell} ${styles.unhealthy}`}>
-                {scan.stats.unhealthy_count}
+                {scan.stats.unhealthy}
               </div>
               <div className={`${styles.tableCell} ${styles.progressCell}`}>
                 <ProgressBar
-                  percentage={scan.stats.completion_percentage}
+                  percentage={scan.stats.percent_complete}
                   showLabel={false}
                 />
                 <span className={styles.percentage}>
-                  {scan.stats.completion_percentage.toFixed(1)}%
+                  {scan.stats.percent_complete.toFixed(1)}%
                 </span>
               </div>
               <div className={styles.tableCell}>

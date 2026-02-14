@@ -7,7 +7,9 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.database import get_db
+from app.db.models import User
 from app.db.schemas import BScanResponse, BScanLabelUpdate
+from app.api.dependencies import get_current_user
 from app.services.labeling_service import labeling_service
 from app.services.bscan_service import bscan_service
 
@@ -19,6 +21,7 @@ async def update_bscan_label(
     bscan_id: int,
     label_update: BScanLabelUpdate,
     db: AsyncSession = Depends(get_db),
+    _user: User = Depends(get_current_user),
 ):
     """
     Update the label of a B-scan.
@@ -63,6 +66,7 @@ async def update_bscan_label(
 async def clear_bscan_label(
     bscan_id: int,
     db: AsyncSession = Depends(get_db),
+    _user: User = Depends(get_current_user),
 ):
     """
     Clear the label of a B-scan (set to unlabeled).

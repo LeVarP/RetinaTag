@@ -10,13 +10,14 @@ import { Label, type BScan } from '@/types';
 interface UseLabelingProps {
   scanId: string;
   bscanId: number | undefined;
+  currentIndex: number;
   onSuccess?: () => void;
 }
 
 /**
  * Hook for managing label updates with optimistic UI.
  */
-export function useLabeling({ scanId, bscanId, onSuccess }: UseLabelingProps) {
+export function useLabeling({ scanId, bscanId, currentIndex, onSuccess }: UseLabelingProps) {
   const queryClient = useQueryClient();
 
   const updateLabelMutation = useMutation({
@@ -27,37 +28,34 @@ export function useLabeling({ scanId, bscanId, onSuccess }: UseLabelingProps) {
       return api.updateLabel(bscanId, { label });
     },
     onMutate: async ({ label }) => {
+      const queryKey = ['bscan', scanId, currentIndex];
+
       // Cancel outgoing refetches
-      await queryClient.cancelQueries({
-        queryKey: ['bscan', scanId],
-      });
+      await queryClient.cancelQueries({ queryKey });
 
       // Snapshot previous value
-      const previousBScan = queryClient.getQueryData<BScan>(['bscan', scanId, bscanId]);
+      const previousBScan = queryClient.getQueryData<BScan>(queryKey);
 
       // Optimistically update
       if (previousBScan) {
-        queryClient.setQueryData(['bscan', scanId, bscanId], {
+        queryClient.setQueryData(queryKey, {
           ...previousBScan,
           label,
         });
       }
 
-      return { previousBScan };
+      return { previousBScan, queryKey };
     },
-    onError: (err, variables, context) => {
+    onError: (err, _variables, context) => {
       // Revert on error
       if (context?.previousBScan) {
-        queryClient.setQueryData(
-          ['bscan', scanId, bscanId],
-          context.previousBScan
-        );
+        queryClient.setQueryData(context.queryKey, context.previousBScan);
       }
       console.error('Failed to update label:', err);
     },
     onSuccess: (data) => {
-      // Update cache with server response
-      queryClient.setQueryData(['bscan', scanId, data.id], data);
+      // Update cache with server response using the index-based key
+      queryClient.setQueryData(['bscan', scanId, currentIndex], data);
 
       // Invalidate scans list to refresh statistics
       queryClient.invalidateQueries({ queryKey: ['scans'] });

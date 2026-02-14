@@ -1,16 +1,17 @@
 /**
  * Keyboard navigation hook for labeling interface.
- * Listens for Arrow keys (navigation) and A/S keys (labeling).
+ * Listens for configurable hotkeys for navigation and labeling.
  */
 
 import { useEffect } from 'react';
-import { DEFAULT_HOTKEYS } from '@/types';
+import { DEFAULT_HOTKEYS, type KeyboardHotkeys } from '@/types';
 
 interface UseKeyboardNavProps {
   onNext: () => void;
   onPrev: () => void;
   onLabelHealthy: () => void;
   onLabelUnhealthy: () => void;
+  hotkeys?: KeyboardHotkeys;
   enabled?: boolean;
 }
 
@@ -22,6 +23,7 @@ export function useKeyboardNav({
   onPrev,
   onLabelHealthy,
   onLabelUnhealthy,
+  hotkeys = DEFAULT_HOTKEYS,
   enabled = true,
 }: UseKeyboardNavProps) {
   useEffect(() => {
@@ -36,34 +38,27 @@ export function useKeyboardNav({
         return;
       }
 
-      // Prevent default for navigation keys
-      const navigationKeys = [
-        DEFAULT_HOTKEYS.nextFrame,
-        DEFAULT_HOTKEYS.prevFrame,
-        DEFAULT_HOTKEYS.labelHealthy,
-        DEFAULT_HOTKEYS.labelUnhealthy,
-      ];
+      const key = event.key;
 
-      if (navigationKeys.includes(event.key)) {
+      // Check against configured hotkeys
+      if (key === hotkeys.nextFrame) {
         event.preventDefault();
-      }
-
-      // Handle navigation
-      switch (event.key) {
-        case DEFAULT_HOTKEYS.nextFrame: // ArrowRight
-          onNext();
-          break;
-        case DEFAULT_HOTKEYS.prevFrame: // ArrowLeft
-          onPrev();
-          break;
-        case DEFAULT_HOTKEYS.labelHealthy: // 'a'
-        case DEFAULT_HOTKEYS.labelHealthy.toUpperCase(): // 'A'
-          onLabelHealthy();
-          break;
-        case DEFAULT_HOTKEYS.labelUnhealthy: // 's'
-        case DEFAULT_HOTKEYS.labelUnhealthy.toUpperCase(): // 'S'
-          onLabelUnhealthy();
-          break;
+        onNext();
+      } else if (key === hotkeys.prevFrame) {
+        event.preventDefault();
+        onPrev();
+      } else if (
+        key === hotkeys.labelHealthy ||
+        key === hotkeys.labelHealthy.toUpperCase()
+      ) {
+        event.preventDefault();
+        onLabelHealthy();
+      } else if (
+        key === hotkeys.labelUnhealthy ||
+        key === hotkeys.labelUnhealthy.toUpperCase()
+      ) {
+        event.preventDefault();
+        onLabelUnhealthy();
       }
     };
 
@@ -72,5 +67,5 @@ export function useKeyboardNav({
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [onNext, onPrev, onLabelHealthy, onLabelUnhealthy, enabled]);
+  }, [onNext, onPrev, onLabelHealthy, onLabelUnhealthy, hotkeys, enabled]);
 }

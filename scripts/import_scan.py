@@ -19,7 +19,7 @@ from app.services.bscan_service import bscan_service
 from app.config import settings
 
 
-async def import_scan(scan_id: str, source_dir: Path, file_pattern: str = "*.png") -> None:
+async def import_scan(scan_id: str, source_dir: Path, file_pattern: str = "*.png", convert_to_png: bool = True) -> None:
     """
     Import a scan from a directory.
 
@@ -27,6 +27,7 @@ async def import_scan(scan_id: str, source_dir: Path, file_pattern: str = "*.png
         scan_id: Unique identifier for the scan
         source_dir: Directory containing B-scan images
         file_pattern: Glob pattern for image files (default: *.png)
+        convert_to_png: Convert images to PNG format if True (default: True)
     """
     print(f"Importing scan: {scan_id}")
     print(f"Source directory: {source_dir}")
@@ -69,7 +70,12 @@ async def import_scan(scan_id: str, source_dir: Path, file_pattern: str = "*.png
         skipped_count = 0
 
         for i, source_file in enumerate(image_files):
-            bscan_index = i
+            # Parse bscan index from filename if it's a number, otherwise use position
+            try:
+                bscan_index = int(source_file.stem)
+            except ValueError:
+                bscan_index = i
+
             dest_filename = f"{bscan_index}.png"
             dest_path = scan_dir / dest_filename
 
@@ -82,9 +88,20 @@ async def import_scan(scan_id: str, source_dir: Path, file_pattern: str = "*.png
                     skipped_count += 1
                     continue
 
-                # Copy file
+                # Copy or convert file
                 import shutil
-                shutil.copy2(source_file, dest_path)
+                if convert_to_png and source_file.suffix.lower() != '.png':
+                    # Convert to PNG using PIL
+                    try:
+                        from PIL import Image
+                        with Image.open(source_file) as img:
+                            img.save(dest_path, 'PNG')
+                    except ImportError:
+                        print(f"  Warning: PIL not installed, copying file as-is")
+                        shutil.copy2(source_file, dest_path)
+                else:
+                    # Just copy the file
+                    shutil.copy2(source_file, dest_path)
 
                 # Create B-scan record
                 await bscan_service.create_bscan(
@@ -145,13 +162,19 @@ Examples:
     parser.add_argument(
         "--pattern",
         default="*.png",
-        help="File pattern for images (default: *.png)",
+        help="File pattern for images (default: *.png, also supports *.bmp, *.tif, etc.)",
+    )
+
+    parser.add_argument(
+        "--no-convert",
+        action="store_true",
+        help="Don't convert images to PNG format (just copy as-is)",
     )
 
     args = parser.parse_args()
 
     # Run async import
-    asyncio.run(import_scan(args.scan_id, args.source, args.pattern))
+    asyncio.run(import_scan(args.scan_id, args.source, args.pattern, convert_to_png=not args.no_convert))
 
 
 if __name__ == "__main__":

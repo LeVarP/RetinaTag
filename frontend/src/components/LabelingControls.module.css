@@ -32,10 +32,12 @@
   align-items: center;
   gap: var(--spacing-sm);
   padding: var(--spacing-lg);
-  border: 2px solid transparent;
   border-radius: var(--radius-md);
   transition: all 0.2s;
   position: relative;
+  cursor: pointer;
+  background-color: white;
+  border: 3px solid transparent;
 }
 
 .labelButton:hover:not(:disabled) {
@@ -52,22 +54,38 @@
   cursor: not-allowed;
 }
 
+/* Healthy: outline by default */
 .labelButton.healthy {
+  border-color: var(--color-healthy);
+  color: var(--color-healthy);
+}
+
+.labelButton.healthy:hover:not(:disabled) {
   background-color: var(--color-healthy);
   color: white;
 }
 
-.labelButton.healthy:hover:not(:disabled) {
-  background-color: #45a049;
+/* Healthy: filled when active */
+.labelButton.healthy.active {
+  background-color: var(--color-healthy);
+  color: white;
 }
 
+/* Unhealthy: outline by default */
 .labelButton.unhealthy {
+  border-color: var(--color-unhealthy);
+  color: var(--color-unhealthy);
+}
+
+.labelButton.unhealthy:hover:not(:disabled) {
   background-color: var(--color-unhealthy);
   color: white;
 }
 
-.labelButton.unhealthy:hover:not(:disabled) {
-  background-color: #e53935;
+/* Unhealthy: filled when active */
+.labelButton.unhealthy.active {
+  background-color: var(--color-unhealthy);
+  color: white;
 }
 
 .icon {
@@ -82,12 +100,26 @@
 
 .hotkey {
   padding: 4px 8px;
-  background-color: rgba(255, 255, 255, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  background-color: rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(0, 0, 0, 0.12);
   border-radius: var(--radius-sm);
   font-family: monospace;
   font-size: var(--font-size-sm);
   font-weight: bold;
+  color: inherit;
+}
+
+/* When active (filled), hotkey uses lighter style */
+.active .hotkey {
+  background-color: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* On hover (filled), hotkey also uses lighter style */
+.labelButton.healthy:hover:not(:disabled) .hotkey,
+.labelButton.unhealthy:hover:not(:disabled) .hotkey {
+  background-color: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
 }
 
 .hint {

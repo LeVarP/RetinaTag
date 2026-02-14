@@ -4,7 +4,11 @@
  */
 
 import axios, { AxiosInstance } from 'axios';
-import type { Scan, ScanStats, BScan, BScanLabelUpdate, GlobalStats } from '@/types';
+import type {
+  Scan, ScanStats, BScan, BScanLabelUpdate, GlobalStats,
+  AuthStatus, LoginCredentials, RegisterCredentials, PasswordChangeRequest,
+  User, UserSettings, UserSettingsUpdate,
+} from '@/types';
 
 /**
  * Base API URL.
@@ -19,10 +23,22 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api/v1';
 const apiClient: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
   timeout: 30000, // 30 seconds
+  withCredentials: true, // Send httpOnly cookies
   headers: {
     'Content-Type': 'application/json',
   },
 });
+
+// Intercept 401 responses to signal auth expiry
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      window.dispatchEvent(new CustomEvent('auth:unauthorized'));
+    }
+    return Promise.reject(error);
+  }
+);
 
 /**
  * API client with all endpoints.
@@ -106,6 +122,43 @@ export const api = {
   getScansSummary: async (): Promise<any> => {
     const response = await apiClient.get('/stats/summary');
     return response.data;
+  },
+
+  // ===== AUTH =====
+
+  login: async (credentials: LoginCredentials): Promise<User> => {
+    const response = await apiClient.post<User>('/auth/login', credentials);
+    return response.data;
+  },
+
+  register: async (credentials: RegisterCredentials): Promise<User> => {
+    const response = await apiClient.post<User>('/auth/register', credentials);
+    return response.data;
+  },
+
+  logout: async (): Promise<void> => {
+    await apiClient.post('/auth/logout');
+  },
+
+  getAuthStatus: async (): Promise<AuthStatus> => {
+    const response = await apiClient.get<AuthStatus>('/auth/me');
+    return response.data;
+  },
+
+  // ===== USER SETTINGS =====
+
+  getMySettings: async (): Promise<UserSettings> => {
+    const response = await apiClient.get<UserSettings>('/users/me/settings');
+    return response.data;
+  },
+
+  updateMySettings: async (updates: UserSettingsUpdate): Promise<UserSettings> => {
+    const response = await apiClient.put<UserSettings>('/users/me/settings', updates);
+    return response.data;
+  },
+
+  changePassword: async (data: PasswordChangeRequest): Promise<void> => {
+    await apiClient.post('/users/me/password', data);
   },
 };
 

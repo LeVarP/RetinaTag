@@ -106,3 +106,47 @@ class BScan(Base):
     def label_name(self) -> str:
         """Get human-readable label name."""
         return {0: "unlabeled", 1: "healthy", 2: "unhealthy"}.get(self.label, "unknown")
+
+
+class User(Base):
+    """User account for authentication and settings."""
+    __tablename__ = "users"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    username: Mapped[str] = mapped_column(String, unique=True, nullable=False, index=True)
+    hashed_password: Mapped[str] = mapped_column(String, nullable=False)
+    is_active: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
+    is_admin: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, default=datetime.utcnow, nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False
+    )
+
+    settings: Mapped["UserSettings"] = relationship(
+        "UserSettings", back_populates="user", uselist=False, cascade="all, delete-orphan"
+    )
+
+    def __repr__(self) -> str:
+        return f"<User(id={self.id}, username='{self.username}', admin={bool(self.is_admin)})>"
+
+
+class UserSettings(Base):
+    """Per-user labeling preferences."""
+    __tablename__ = "user_settings"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("users.id", ondelete="CASCADE"), unique=True, nullable=False
+    )
+    auto_advance: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
+    hotkey_healthy: Mapped[str] = mapped_column(String, default="a", nullable=False)
+    hotkey_unhealthy: Mapped[str] = mapped_column(String, default="s", nullable=False)
+    hotkey_next: Mapped[str] = mapped_column(String, default="ArrowRight", nullable=False)
+    hotkey_prev: Mapped[str] = mapped_column(String, default="ArrowLeft", nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False
+    )
+
+    user: Mapped["User"] = relationship("User", back_populates="settings")

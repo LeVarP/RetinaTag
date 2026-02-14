@@ -4,12 +4,15 @@ Configures CORS, routers, and application lifecycle.
 """
 
 from contextlib import asynccontextmanager
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from pydantic import ValidationError
 
 from app.config import settings
-from app.db.database import init_db, dispose_engine
-from app.api.v1 import scans, bscans, stats
+from app.db.database import init_db, dispose_engine, AsyncSessionLocal
+from app.api.v1 import scans, bscans, stats, auth, users
+from app.services.auth_service import auth_service
 
 
 @asynccontextmanager
@@ -21,6 +24,12 @@ async def lifespan(app: FastAPI):
     # Startup: Initialize database
     await init_db()
     print("✓ Database initialized")
+
+    # Seed default admin user
+    async with AsyncSessionLocal() as session:
+        await auth_service.ensure_default_admin(session)
+        await session.commit()
+
     print(f"✓ Data directory: {settings.data_dir}")
     print(f"✓ Cache directory: {settings.cache_dir}")
     print(f"✓ Preview format: {settings.preview_format}")
@@ -50,7 +59,46 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Global exception handlers
+@app.exception_handler(ValidationError)
+async def validation_exception_handler(request: Request, exc: ValidationError):
+    """
+    Handle Pydantic validation errors with detailed messages.
+    """
+    return JSONResponse(
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        content={
+            "error": "Validation Error",
+            "message": "Data validation failed. Please check the request format.",
+            "details": exc.errors(),
+        },
+    )
+
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    """
+    Catch-all handler for unexpected exceptions.
+    Prevents exposing stack traces to clients.
+    """
+    # Log the full exception (in production, use proper logging)
+    import traceback
+    print(f"❌ Unexpected error: {exc}")
+    print(traceback.format_exc())
+
+    return JSONResponse(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        content={
+            "error": "Internal Server Error",
+            "message": str(exc) if settings.debug else "An unexpected error occurred. Please try again or contact support.",
+            "type": exc.__class__.__name__,
+        },
+    )
+
+
 # Include API routers
+app.include_router(auth.router, prefix="/api/v1")
+app.include_router(users.router, prefix="/api/v1")
 app.include_router(scans.router, prefix="/api/v1")
 app.include_router(bscans.router, prefix="/api/v1")
 app.include_router(stats.router, prefix="/api/v1")

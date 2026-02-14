@@ -43,15 +43,59 @@
   color: white;
 }
 
+.sizeControl {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+}
+
+.sizeBtn {
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: white;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text);
+  transition: background-color 0.15s;
+}
+
+.sizeBtn:hover:not(:disabled) {
+  background-color: var(--color-surface);
+}
+
+.sizeBtn:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.sizeSlider {
+  width: 120px;
+  accent-color: var(--color-primary);
+}
+
+.sizeLabel {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  min-width: 45px;
+}
+
 .imageContainer {
   position: relative;
   width: 100%;
-  max-width: 800px;
   margin: 0 auto;
   background-color: black;
   border-radius: var(--radius-md);
   overflow: hidden;
   box-shadow: var(--shadow-lg);
+  cursor: crosshair;
+  transition: max-width 0.15s ease;
 }
 
 .image {
@@ -60,11 +104,27 @@
   display: block;
 }
 
+.magnifier {
+  position: absolute;
+  border: 3px solid rgba(255, 255, 255, 0.8);
+  border-radius: 50%;
+  pointer-events: none;
+  background-repeat: no-repeat;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5), inset 0 0 10px rgba(0, 0, 0, 0.2);
+  z-index: 10;
+}
+
+.hint {
+  text-align: center;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
 .loading {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 400px;
+  min-height: 250px;
 }
 
 .spinner {

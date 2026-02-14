@@ -106,16 +106,16 @@ typecheck:
 
 docker-build:
 	@echo "Building Docker images..."
-	docker-compose build
+	docker compose build
 
 docker-up:
 	@echo "Starting Docker containers..."
-	docker-compose up -d
+	docker compose up -d
 	@echo "Application available at http://localhost"
 
 docker-down:
 	@echo "Stopping Docker containers..."
-	docker-compose down
+	docker compose down
 
 # ===== UTILITIES =====
 

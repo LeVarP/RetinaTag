@@ -1,39 +1,169 @@
 /**
- * ScanListPage component styles.
+ * ScanListPage component styles - table layout.
  */
 
-.header {
+/* Compact global stats bar */
+.statsBar {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: var(--spacing-xl);
-  padding-bottom: var(--spacing-md);
-  border-bottom: 2px solid var(--color-border);
+  gap: var(--spacing-md);
+  padding: 10px 20px;
+  margin-bottom: var(--spacing-lg);
+  background: white;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
 }
 
-.header h2 {
-  margin: 0;
-}
-
-.summary {
+.statItem {
   display: flex;
-  gap: var(--spacing-lg);
+  align-items: baseline;
+  gap: 6px;
 }
 
-.summaryItem {
+.statNum {
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.statLbl {
   font-size: var(--font-size-sm);
   color: var(--color-text-secondary);
 }
 
-.summaryItem strong {
-  color: var(--color-text);
-  font-size: var(--font-size-base);
+.healthyStat .statNum {
+  color: var(--color-healthy);
 }
 
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: var(--spacing-lg);
+.unhealthyStat .statNum {
+  color: var(--color-unhealthy);
+}
+
+.statDivider {
+  width: 1px;
+  height: 24px;
+  background: var(--color-border);
+}
+
+.statProgress {
+  flex: 1;
+  min-width: 120px;
+}
+
+/* Table */
+.tableWrapper {
+  background: white;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow-x: auto;
+  box-shadow: var(--shadow-sm);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-sm);
+}
+
+.table thead {
+  background: var(--color-surface);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.table th {
+  padding: 12px 16px;
+  text-align: left;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  border-bottom: 2px solid var(--color-border);
+  white-space: nowrap;
+  user-select: none;
+}
+
+.table td {
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--color-border);
+  vertical-align: middle;
+}
+
+.table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.table tbody tr:hover {
+  background-color: var(--color-surface);
+}
+
+.sortable {
+  cursor: pointer;
+  transition: color 0.15s;
+}
+
+.sortable:hover {
+  color: var(--color-primary);
+}
+
+.numCol {
+  text-align: right;
+}
+
+.healthy {
+  color: var(--color-healthy);
+  font-weight: 600;
+}
+
+.unhealthy {
+  color: var(--color-unhealthy);
+  font-weight: 600;
+}
+
+.date {
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+
+.scanLink {
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.scanLink:hover {
+  color: var(--color-primary);
+}
+
+.progressCol {
+  display: flex;
+  gap: var(--spacing-sm);
+  min-width: 140px;
+  flex-direction: column-reverse;
+  align-content: stretch;
+}
+
+.pct {
+  font-weight: 600;
+  min-width: 48px;
+  text-align: right;
+}
+
+.actionLink {
+  display: inline-block;
+  padding: 4px 14px;
+  background-color: var(--color-primary);
+  color: white;
+  font-weight: 500;
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  text-align: center;
+  transition: background-color 0.15s;
+  white-space: nowrap;
+}
+
+.actionLink:hover {
+  background-color: var(--color-primary-hover);
+  color: white;
 }
 
 /* Loading state */
@@ -109,7 +239,7 @@
   overflow-x: auto;
 }
 
-/* Responsive design */
+/* Responsive */
 @media (max-width: 768px) {
   .header {
     flex-direction: column;
@@ -120,9 +250,5 @@
   .summary {
     flex-direction: column;
     gap: var(--spacing-sm);
-  }
-
-  .grid {
-    grid-template-columns: 1fr;
   }
 }

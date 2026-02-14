@@ -37,9 +37,19 @@ class Settings(BaseSettings):
         "http://localhost",
     ]
 
+    # JWT settings
+    jwt_secret_key: str = "CHANGE-ME-IN-PRODUCTION-use-openssl-rand-hex-32"
+    jwt_algorithm: str = "HS256"
+    jwt_access_token_expire_minutes: int = 1440  # 24 hours
+
+    # Default admin
+    default_admin_username: str = "admin"
+    default_admin_password: str = "admin"
+
     # Server settings
     host: str = "0.0.0.0"
     port: int = 8000
+    debug: bool = False  # Show detailed error messages
 
     class Config:
         """Pydantic config."""
