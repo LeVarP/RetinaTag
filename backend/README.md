@@ -147,7 +147,6 @@ All settings are loaded from environment variables or a `.env` file in the backe
 | `DATABASE_URL`                    | `sqlite+aiosqlite:///./data/database/oct_labeler.db` | Database connection string |
 | `DATA_DIR`                        | `./data`                             | Root data directory             |
 | `CACHE_DIR`                       | `./data/cache`                       | Preview cache directory         |
-| `SCANS_DIR`                       | `./data/scans`                       | Source images directory         |
 | `PREVIEW_FORMAT`                  | `webp`                               | Preview format: webp, png, jpeg |
 | `PREVIEW_QUALITY`                 | `85`                                 | Lossy format quality (0–100)    |
 | `NORMALIZATION_METHOD`            | `percentile`                         | percentile or fixed_window      |

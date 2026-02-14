@@ -47,7 +47,6 @@ RetinaTag/
 │   └── tests/         # Vitest + Playwright tests
 ├── docker/            # Dockerfiles + nginx config
 └── data/              # Runtime data (git-ignored)
-    ├── scans/         # Original 16-bit B-scans
     ├── cache/         # Generated 8-bit previews
     └── database/      # SQLite database
 ```

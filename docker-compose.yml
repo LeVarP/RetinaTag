@@ -19,7 +19,6 @@ services:
       - DATABASE_URL=sqlite+aiosqlite:////app/data/database/oct_labeler.db
       - DATA_DIR=/app/data
       - CACHE_DIR=/app/data/cache
-      - SCANS_DIR=/app/data/scans
       # REQUIRED: set in .env — run: openssl rand -hex 32
       - JWT_SECRET_KEY=${JWT_SECRET_KEY:-CHANGE-ME}
     restart: unless-stopped

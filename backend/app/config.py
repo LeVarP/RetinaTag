@@ -18,7 +18,6 @@ class Settings(BaseSettings):
     # Data directories
     data_dir: Path = Path("./data")
     cache_dir: Path = Path("./data/cache")
-    scans_dir: Path = Path("./data/scans")
 
     # Preview generation
     preview_format: str = "webp"  # Options: webp, png, jpeg
@@ -60,7 +59,6 @@ class Settings(BaseSettings):
         """Ensure all required directories exist."""
         self.data_dir.mkdir(parents=True, exist_ok=True)
         self.cache_dir.mkdir(parents=True, exist_ok=True)
-        self.scans_dir.mkdir(parents=True, exist_ok=True)
         (self.cache_dir / "previews").mkdir(parents=True, exist_ok=True)
         (self.data_dir / "database").mkdir(parents=True, exist_ok=True)
 
