@@ -45,7 +45,6 @@ RetinaTag/
 │   │   ├── context/   # AuthContext, SettingsContext
 │   │   └── services/  # API client
 │   └── tests/         # Vitest + Playwright tests
-├── scripts/           # CLI tools (import/export)
 ├── docker/            # Dockerfiles + nginx config
 └── data/              # Runtime data (git-ignored)
     ├── scans/         # Original 16-bit B-scans

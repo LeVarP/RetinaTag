@@ -74,6 +74,9 @@ frontend/build/
 # ===== CLAUDE CODE =====
 .claude/
 
+# ===== LOCAL SCRIPTS =====
+scripts/
+
 # ===== IDEs and Editors =====
 .vscode/
 .idea/
