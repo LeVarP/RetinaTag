@@ -1,5 +1,5 @@
-# Docker Compose configuration for OCT B-Scan Labeler
-# Orchestrates backend (FastAPI) and frontend (nginx) services
+# RetinaTag — Docker Compose configuration
+# See setup/SETUP.md for full instructions
 
 version: '3.8'
 
@@ -8,26 +8,23 @@ services:
     build:
       context: .
       dockerfile: docker/backend.Dockerfile
-    container_name: oct-labeler-backend
+    container_name: retinatag-backend
     ports:
       - "8000:8000"
     volumes:
-      # Mount data directory for persistent storage
       - ./data:/app/data
-      # Mount scripts for CLI access
-      - ./backend/scripts:/app/scripts
-      # Mount OCT-500 dataset (read-only)
-      # Set OCT_DATA_PATH in .env file to your OCT-500 location
+      # REQUIRED: set OCT_DATA_PATH in .env to your image directory on the host
       - ${OCT_DATA_PATH:-/data/oct-500}:/mnt/oct-data:ro
     environment:
       - DATABASE_URL=sqlite+aiosqlite:////app/data/database/oct_labeler.db
       - DATA_DIR=/app/data
       - CACHE_DIR=/app/data/cache
       - SCANS_DIR=/app/data/scans
-      - OCT_DATA_PATH=/mnt/oct-data
+      # REQUIRED: set in .env — run: openssl rand -hex 32
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY:-CHANGE-ME}
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8000/health')"]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -37,7 +34,7 @@ services:
     build:
       context: .
       dockerfile: docker/frontend.Dockerfile
-    container_name: oct-labeler-frontend
+    container_name: retinatag-frontend
     ports:
       - "80:80"
     depends_on:
@@ -50,11 +47,6 @@ services:
       retries: 3
       start_period: 5s
 
-volumes:
-  # Named volume for data persistence
-  data:
-    driver: local
-
 networks:
   default:
-    name: oct-labeler-network
+    name: retinatag-network
