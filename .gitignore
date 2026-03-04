@@ -109,3 +109,4 @@ docker-compose.override.yml
 # ===== OS =====
 Thumbs.db
 .DS_Store
+backend/app/db/Overview info_all_sheets - Overview info_all_sheets.csv
