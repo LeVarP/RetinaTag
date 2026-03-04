@@ -3,7 +3,6 @@
  */
 
 import { useState, useRef } from 'react';
-import { NavigationMode } from '@/types';
 import styles from './NavigationControls.module.css';
 
 interface NavigationControlsProps {
@@ -11,14 +10,9 @@ interface NavigationControlsProps {
   totalBScans: number;
   hasPrev: boolean;
   hasNext: boolean;
-  hasNextUnlabeled: boolean;
-  navigationMode: NavigationMode;
-  autoAdvance: boolean;
   onPrev: () => void;
   onNext: () => void;
   onGoTo: (index: number) => void;
-  onToggleMode: () => void;
-  onToggleAutoAdvance: () => void;
 }
 
 function NavigationControls({
@@ -26,16 +20,11 @@ function NavigationControls({
   totalBScans,
   hasPrev,
   hasNext,
-  hasNextUnlabeled,
-  navigationMode,
-  autoAdvance,
   onPrev,
   onNext,
   onGoTo,
-  onToggleMode,
-  onToggleAutoAdvance,
 }: NavigationControlsProps) {
-  const isSequential = navigationMode === NavigationMode.Sequential;
+  const maxIndex = Math.max(totalBScans - 1, 0);
   const [isEditing, setIsEditing] = useState(false);
   const [inputValue, setInputValue] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
@@ -48,7 +37,7 @@ function NavigationControls({
 
   const handleSubmit = () => {
     const num = parseInt(inputValue, 10);
-    if (!isNaN(num) && num >= 1 && num <= totalBScans) {
+    if (!isNaN(num) && num >= 0 && num <= maxIndex) {
       onGoTo(num);
     }
     setIsEditing(false);
@@ -81,8 +70,8 @@ function NavigationControls({
             <input
               ref={inputRef}
               type="number"
-              min={1}
-              max={totalBScans}
+              min={0}
+              max={maxIndex}
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               onBlur={handleSubmit}
@@ -96,7 +85,7 @@ function NavigationControls({
             </span>
           )}
           <span className={styles.separator}>/</span>
-          <span className={styles.total}>{totalBScans}</span>
+          <span className={styles.total}>{maxIndex}</span>
         </div>
 
         <button
@@ -108,24 +97,6 @@ function NavigationControls({
           <span className={styles.buttonText}>Next</span>
           <span className={styles.arrow}>→</span>
         </button>
-      </div>
-
-      <div className={styles.modeToggle}>
-        <button
-          className={`${styles.modeButton} ${isSequential ? styles.active : ''}`}
-          onClick={onToggleMode}
-        >
-          {isSequential ? '📋 Sequential' : '🎯 Unlabeled Only'}
-        </button>
-        <button
-          className={`${styles.modeButton} ${autoAdvance ? styles.active : ''}`}
-          onClick={onToggleAutoAdvance}
-        >
-          {autoAdvance ? '⏩ Auto-advance' : '⏸ Stay on frame'}
-        </button>
-        {!isSequential && !hasNextUnlabeled && (
-          <span className={styles.hint}>No more unlabeled frames</span>
-        )}
       </div>
 
       <div className={styles.hint}>

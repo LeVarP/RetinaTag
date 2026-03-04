@@ -126,9 +126,9 @@ button {
 /* Utility classes */
 .container {
   width: 100%;
-  max-width: 1200px;
+  max-width: none;
   margin: 0 auto;
-  padding: 0 var(--spacing-md);
+  padding: 0 clamp(10px, 2vw, 24px);
 }
 
 .sr-only {

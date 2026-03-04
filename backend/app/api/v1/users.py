@@ -30,6 +30,10 @@ async def get_my_settings(
         auto_advance=bool(settings.auto_advance),
         hotkey_healthy=settings.hotkey_healthy,
         hotkey_unhealthy=settings.hotkey_unhealthy,
+        hotkey_cyst=settings.hotkey_cyst,
+        hotkey_hard_exudate=settings.hotkey_hard_exudate,
+        hotkey_srf=settings.hotkey_srf,
+        hotkey_ped=settings.hotkey_ped,
         hotkey_next=settings.hotkey_next,
         hotkey_prev=settings.hotkey_prev,
     )
@@ -47,6 +51,10 @@ async def update_my_settings(
         auto_advance=bool(settings.auto_advance),
         hotkey_healthy=settings.hotkey_healthy,
         hotkey_unhealthy=settings.hotkey_unhealthy,
+        hotkey_cyst=settings.hotkey_cyst,
+        hotkey_hard_exudate=settings.hotkey_hard_exudate,
+        hotkey_srf=settings.hotkey_srf,
+        hotkey_ped=settings.hotkey_ped,
         hotkey_next=settings.hotkey_next,
         hotkey_prev=settings.hotkey_prev,
     )

@@ -5,9 +5,12 @@ import { useAuth } from '@/context/AuthContext';
 import type { UserSettings, UserSettingsUpdate } from '@/types';
 
 const DEFAULT_SETTINGS: UserSettings = {
-  auto_advance: true,
   hotkey_healthy: 'a',
   hotkey_unhealthy: 's',
+  hotkey_cyst: '1',
+  hotkey_hard_exudate: '2',
+  hotkey_srf: '3',
+  hotkey_ped: '4',
   hotkey_next: 'ArrowRight',
   hotkey_prev: 'ArrowLeft',
 };

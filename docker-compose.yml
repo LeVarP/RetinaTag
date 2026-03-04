@@ -1,16 +1,13 @@
 # RetinaTag — Docker Compose configuration
 # See setup/SETUP.md for full instructions
 
-version: '3.8'
-
 services:
   backend:
     build:
       context: .
       dockerfile: docker/backend.Dockerfile
     container_name: retinatag-backend
-    ports:
-      - "8000:8000"
+    # Do not expose backend directly; frontend proxies /api internally.
     volumes:
       - ./data:/app/data
       # REQUIRED: set OCT_DATA_PATH in .env to your image directory on the host
@@ -40,7 +37,7 @@ services:
       - backend
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/"]
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1/"]
       interval: 30s
       timeout: 10s
       retries: 3

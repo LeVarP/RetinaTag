@@ -129,8 +129,138 @@
   text-align: center;
 }
 
+.unlabelRow {
+  display: flex;
+  justify-content: center;
+}
+
+.unlabelButton {
+  padding: 8px 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: white;
+  color: var(--color-text);
+  font-weight: 600;
+  transition: all 0.15s;
+}
+
+.unlabelButton:hover:not(:disabled) {
+  background: var(--color-surface);
+  border-color: var(--color-text-secondary);
+}
+
+.unlabelButton:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.settingsRow {
+  display: flex;
+  justify-content: center;
+}
+
+.settingsButton {
+  padding: 8px 14px;
+  border: 1px solid var(--color-primary);
+  border-radius: var(--radius-sm);
+  background: var(--color-primary);
+  color: white;
+  font-weight: 600;
+  transition: all 0.15s;
+  box-shadow: var(--shadow-sm);
+}
+
+.settingsButton:hover {
+  background: var(--color-primary-hover);
+  border-color: var(--color-primary-hover);
+  box-shadow: var(--shadow-md);
+}
+
+.pathologySection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.pathologyTitle {
+  margin: 0;
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  text-align: center;
+}
+
+.pathologyButtons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-sm);
+}
+
+.pathologyButton {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background-color: white;
+  color: var(--color-text);
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.pathologyButton:hover:not(:disabled) {
+  border-color: var(--color-warning);
+  transform: translateY(-1px);
+}
+
+.pathologyButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.pathologyActionRow {
+  display: flex;
+  justify-content: center;
+}
+
+.pathologyResetButton {
+  padding: 8px 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: white;
+  color: var(--color-text);
+  font-weight: 600;
+  transition: all 0.15s;
+}
+
+.pathologyResetButton:hover:not(:disabled) {
+  background: var(--color-surface);
+  border-color: var(--color-text-secondary);
+}
+
+.pathologyResetButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.activePathology {
+  background-color: var(--color-warning);
+  border-color: var(--color-warning);
+  color: white;
+}
+
+.activePathology .hotkey {
+  background-color: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
 @media (max-width: 768px) {
   .buttons {
+    grid-template-columns: 1fr;
+  }
+
+  .pathologyButtons {
     grid-template-columns: 1fr;
   }
 }

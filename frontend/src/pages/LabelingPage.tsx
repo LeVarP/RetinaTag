@@ -7,7 +7,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import { api } from '@/services/api';
-import { NavigationMode, type KeyboardHotkeys } from '@/types';
+import type { KeyboardHotkeys } from '@/types';
 import { useSettings } from '@/context/SettingsContext';
 import { useKeyboardNav } from '@/hooks/useKeyboardNav';
 import { usePrefetch } from '@/hooks/usePrefetch';
@@ -21,18 +21,20 @@ function LabelingPage() {
   const { scanId } = useParams<{ scanId: string }>();
   const navigate = useNavigate();
 
-  const { settings, updateSettings } = useSettings();
+  const { settings } = useSettings();
 
-  const [currentIndex, setCurrentIndex] = useState(1);
-  const [navigationMode, setNavigationMode] = useState(NavigationMode.Sequential);
+  const [currentIndex, setCurrentIndex] = useState(0);
   const [imageMaxWidth, setImageMaxWidth] = useState(450);
 
-  const autoAdvance = settings.auto_advance;
   const hotkeys: KeyboardHotkeys = {
     nextFrame: settings.hotkey_next,
     prevFrame: settings.hotkey_prev,
     labelHealthy: settings.hotkey_healthy,
     labelUnhealthy: settings.hotkey_unhealthy,
+    toggleCyst: settings.hotkey_cyst,
+    toggleHardExudate: settings.hotkey_hard_exudate,
+    toggleSrf: settings.hotkey_srf,
+    togglePed: settings.hotkey_ped,
   };
 
   // Fetch scan stats to get total B-scans
@@ -67,43 +69,54 @@ function LabelingPage() {
     enabled: !!scanId && totalBScans > 0,
   });
 
-  // Auto-advance to next frame after labeling
-  const handleAutoAdvance = () => {
-    if (navigationMode === NavigationMode.Sequential) {
-      // Sequential: go to next frame
-      if (bscan?.next_index !== null && bscan?.next_index !== undefined) {
-        setCurrentIndex(bscan.next_index);
-      }
-    } else {
-      // Unlabeled only: go to next unlabeled frame
-      if (bscan?.next_unlabeled_index !== null && bscan?.next_unlabeled_index !== undefined) {
-        setCurrentIndex(bscan.next_unlabeled_index);
-      } else if (bscan?.next_index !== null && bscan?.next_index !== undefined) {
-        // Fallback to sequential if no unlabeled frames left
-        setCurrentIndex(bscan.next_index);
-      }
-    }
-  };
-
-  // Labeling hook with auto-advance
-  const { labelAsHealthy, labelAsUnhealthy, isLoading: isLabeling } = useLabeling({
+  const { labelAsHealthy, labelAsUnhealthy, updatePathology, clearLabel, isLoading: isLabeling } = useLabeling({
     scanId: scanId!,
     bscanId: bscan?.id,
     currentIndex,
-    onSuccess: autoAdvance ? handleAutoAdvance : undefined,
   });
+
+  const toggleCyst = () => {
+    updatePathology({ cyst: bscan?.cyst === 1 ? 0 : 1 });
+  };
+
+  const toggleHardExudate = () => {
+    updatePathology({ hard_exudate: bscan?.hard_exudate === 1 ? 0 : 1 });
+  };
+
+  const toggleSrf = () => {
+    updatePathology({ srf: bscan?.srf === 1 ? 0 : 1 });
+  };
+
+  const togglePed = () => {
+    updatePathology({ ped: bscan?.ped === 1 ? 0 : 1 });
+  };
+
+  const setAllPathologiesZero = () => {
+    updatePathology({
+      cyst: 0,
+      hard_exudate: 0,
+      srf: 0,
+      ped: 0,
+    });
+  };
+
+  const hasAnyPathology =
+    bscan?.cyst === 1 ||
+    bscan?.hard_exudate === 1 ||
+    bscan?.srf === 1 ||
+    bscan?.ped === 1;
+
+  const handleLabelHealthy = () => {
+    if (hasAnyPathology) {
+      return;
+    }
+    labelAsHealthy();
+  };
 
   // Navigation handlers
   const handleNext = () => {
-    if (navigationMode === NavigationMode.Sequential) {
-      if (bscan?.next_index !== null && bscan?.next_index !== undefined) {
-        setCurrentIndex(bscan.next_index);
-      }
-    } else {
-      // Unlabeled only mode
-      if (bscan?.next_unlabeled_index !== null && bscan?.next_unlabeled_index !== undefined) {
-        setCurrentIndex(bscan.next_unlabeled_index);
-      }
+    if (bscan?.next_index !== null && bscan?.next_index !== undefined) {
+      setCurrentIndex(bscan.next_index);
     }
   };
 
@@ -113,27 +126,23 @@ function LabelingPage() {
     }
   };
 
-  const toggleNavigationMode = () => {
-    setNavigationMode((prev) =>
-      prev === NavigationMode.Sequential
-        ? NavigationMode.UnlabeledOnly
-        : NavigationMode.Sequential
-    );
-  };
-
   // Keyboard navigation
   useKeyboardNav({
     onNext: handleNext,
     onPrev: handlePrev,
-    onLabelHealthy: labelAsHealthy,
+    onLabelHealthy: handleLabelHealthy,
     onLabelUnhealthy: labelAsUnhealthy,
+    onToggleCyst: toggleCyst,
+    onToggleHardExudate: toggleHardExudate,
+    onToggleSrf: toggleSrf,
+    onTogglePed: togglePed,
     hotkeys,
     enabled: !!bscan && !isLabeling,
   });
 
-  // Reset to index 1 when scan changes (B-scans start at index 1)
+  // Reset to index 0 when scan changes (0-based B-scan indexing)
   useEffect(() => {
-    setCurrentIndex(1);
+    setCurrentIndex(0);
   }, [scanId]);
 
   if (!scanId) {
@@ -168,7 +177,6 @@ function LabelingPage() {
 
   const hasPrev = bscan.prev_index !== null;
   const hasNext = bscan.next_index !== null;
-  const hasNextUnlabeled = bscan.next_unlabeled_index !== null;
 
   return (
     <div className="container">
@@ -183,7 +191,8 @@ function LabelingPage() {
         <div className={styles.viewer}>
           <BScanViewer
             previewUrl={bscan.preview_url || ''}
-            label={bscan.label}
+            healthy={bscan.healthy}
+            isLabeled={bscan.is_labeled}
             bscanIndex={bscan.bscan_index}
             isLoading={isLabeling || isFetching}
             maxWidth={imageMaxWidth}
@@ -197,23 +206,34 @@ function LabelingPage() {
             totalBScans={totalBScans}
             hasPrev={hasPrev}
             hasNext={hasNext}
-            hasNextUnlabeled={hasNextUnlabeled}
-            navigationMode={navigationMode}
-            autoAdvance={autoAdvance}
             onPrev={handlePrev}
             onNext={handleNext}
             onGoTo={setCurrentIndex}
-            onToggleMode={toggleNavigationMode}
-            onToggleAutoAdvance={() => updateSettings({ auto_advance: !autoAdvance })}
           />
 
           <LabelingControls
-            onLabelHealthy={labelAsHealthy}
+            onLabelHealthy={handleLabelHealthy}
             onLabelUnhealthy={labelAsUnhealthy}
+            onUnlabel={clearLabel}
+            onSetAllPathologiesZero={setAllPathologiesZero}
+            onOpenHotkeySettings={() => navigate('/profile#hotkeys')}
+            onToggleCyst={toggleCyst}
+            onToggleHardExudate={toggleHardExudate}
+            onToggleSrf={toggleSrf}
+            onTogglePed={togglePed}
             currentLabel={bscan.label}
+            cyst={bscan.cyst}
+            hardExudate={bscan.hard_exudate}
+            srf={bscan.srf}
+            ped={bscan.ped}
+            isLabeled={bscan.is_labeled}
             isLoading={isLabeling}
             hotkeyHealthy={settings.hotkey_healthy}
             hotkeyUnhealthy={settings.hotkey_unhealthy}
+            hotkeyCyst={settings.hotkey_cyst}
+            hotkeyHardExudate={settings.hotkey_hard_exudate}
+            hotkeySrf={settings.hotkey_srf}
+            hotkeyPed={settings.hotkey_ped}
           />
         </div>
       </div>

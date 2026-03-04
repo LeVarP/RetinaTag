@@ -15,6 +15,10 @@ async def test_get_settings_creates_defaults(test_db):
     assert settings.auto_advance == 1
     assert settings.hotkey_healthy == "a"
     assert settings.hotkey_unhealthy == "s"
+    assert settings.hotkey_cyst == "1"
+    assert settings.hotkey_hard_exudate == "2"
+    assert settings.hotkey_srf == "3"
+    assert settings.hotkey_ped == "4"
 
 
 @pytest.mark.asyncio
@@ -39,6 +43,10 @@ async def test_update_all_settings(test_db):
         auto_advance=False,
         hotkey_healthy="d",
         hotkey_unhealthy="f",
+        hotkey_cyst="x",
+        hotkey_hard_exudate="h",
+        hotkey_srf="r",
+        hotkey_ped="p",
         hotkey_next="ArrowDown",
         hotkey_prev="ArrowUp",
     )
@@ -48,5 +56,9 @@ async def test_update_all_settings(test_db):
     assert settings.auto_advance == 0
     assert settings.hotkey_healthy == "d"
     assert settings.hotkey_unhealthy == "f"
+    assert settings.hotkey_cyst == "x"
+    assert settings.hotkey_hard_exudate == "h"
+    assert settings.hotkey_srf == "r"
+    assert settings.hotkey_ped == "p"
     assert settings.hotkey_next == "ArrowDown"
     assert settings.hotkey_prev == "ArrowUp"

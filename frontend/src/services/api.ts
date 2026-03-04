@@ -5,7 +5,7 @@
 
 import axios, { AxiosInstance } from 'axios';
 import type {
-  Scan, ScanStats, BScan, BScanLabelUpdate, GlobalStats,
+  Scan, ScanStats, BScan, BScanListItem, BScanHealthUpdate, BScanPathologyUpdate, GlobalStats,
   AuthStatus, LoginCredentials, RegisterCredentials, PasswordChangeRequest,
   User, UserSettings, UserSettingsUpdate,
 } from '@/types';
@@ -71,6 +71,14 @@ export const api = {
   },
 
   /**
+   * List all B-scans in a scan (for detailed tables).
+   */
+  getScanBScans: async (scanId: string): Promise<BScanListItem[]> => {
+    const response = await apiClient.get<BScanListItem[]>(`/scans/${scanId}/bscans`);
+    return response.data;
+  },
+
+  /**
    * Get the preview image URL for a B-scan.
    * Returns the full URL that can be used in <img> src.
    */
@@ -78,22 +86,33 @@ export const api = {
     return `${API_BASE_URL}/scans/${scanId}/bscans/${bscanIndex}/preview`;
   },
 
-  /**
-   * Update the label of a B-scan.
-   */
-  updateLabel: async (
+  updateHealth: async (
     bscanId: number,
-    labelUpdate: BScanLabelUpdate
+    healthUpdate: BScanHealthUpdate
   ): Promise<BScan> => {
     const response = await apiClient.post<BScan>(
-      `/bscans/${bscanId}/label`,
-      labelUpdate
+      `/bscans/${bscanId}/health`,
+      healthUpdate
     );
     return response.data;
   },
 
   /**
-   * Clear the label of a B-scan (set to unlabeled).
+   * Update pathology flags of a B-scan.
+   */
+  updatePathology: async (
+    bscanId: number,
+    pathologyUpdate: BScanPathologyUpdate
+  ): Promise<BScan> => {
+    const response = await apiClient.post<BScan>(
+      `/bscans/${bscanId}/pathology`,
+      pathologyUpdate
+    );
+    return response.data;
+  },
+
+  /**
+   * Clear all labeling fields of a B-scan (set to fully unlabeled).
    */
   clearLabel: async (bscanId: number): Promise<BScan> => {
     const response = await apiClient.delete<BScan>(`/bscans/${bscanId}/label`);
@@ -121,6 +140,13 @@ export const api = {
    */
   getScansSummary: async (): Promise<any> => {
     const response = await apiClient.get('/stats/summary');
+    return response.data;
+  },
+
+  downloadBScansCsv: async (): Promise<Blob> => {
+    const response = await apiClient.get('/stats/export/bscans.csv', {
+      responseType: 'blob',
+    });
     return response.data;
   },
 

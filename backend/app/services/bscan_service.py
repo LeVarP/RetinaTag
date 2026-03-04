@@ -3,7 +3,7 @@ B-scan management service for OCT B-Scan Labeler.
 Handles B-scan retrieval, navigation, and metadata.
 """
 
-from typing import Optional
+from typing import Optional, List
 from pathlib import Path
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -51,6 +51,16 @@ class BScanService:
             )
         )
         return result.scalar_one_or_none()
+
+    @staticmethod
+    async def list_bscans_for_scan(db: AsyncSession, scan_id: str) -> List[BScan]:
+        """List all B-scans for a scan ordered by index."""
+        result = await db.execute(
+            select(BScan)
+            .where(BScan.scan_id == scan_id)
+            .order_by(BScan.bscan_index.asc())
+        )
+        return list(result.scalars().all())
 
     @staticmethod
     async def get_next_bscan_index(
@@ -113,13 +123,13 @@ class BScanService:
         Returns:
             Next unlabeled B-scan index or None if all remaining are labeled
         """
-        # Label 0 = unlabeled
+        # Unlabeled navigation is based on marker-field completeness.
         result = await db.execute(
             select(BScan.bscan_index)
             .where(
                 BScan.scan_id == scan_id,
                 BScan.bscan_index > current_index,
-                BScan.label == 0,
+                BScan.is_labeled == 0,
             )
             .order_by(BScan.bscan_index.asc())
             .limit(1)
@@ -162,6 +172,13 @@ class BScanService:
             scan_id=bscan.scan_id,
             bscan_index=bscan.bscan_index,
             path=bscan.path,
+            bscan_key=bscan.bscan_key,
+            cyst=bscan.cyst,
+            hard_exudate=bscan.hard_exudate,
+            srf=bscan.srf,
+            ped=bscan.ped,
+            healthy=bscan.healthy,
+            is_labeled=bool(bscan.is_labeled),
             label=bscan.label,
             updated_at=bscan.updated_at,
             preview_url=preview_url,

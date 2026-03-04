@@ -4,12 +4,12 @@
  */
 
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { Label, LabelNames } from '@/types';
 import styles from './BScanViewer.module.css';
 
 interface BScanViewerProps {
   previewUrl: string;
-  label: Label;
+  healthy: number | null;
+  isLabeled: boolean;
   bscanIndex: number;
   isLoading?: boolean;
   maxWidth: number;
@@ -24,7 +24,8 @@ const STEP = 50;
 
 function BScanViewer({
   previewUrl,
-  label,
+  healthy,
+  isLabeled,
   bscanIndex,
   isLoading = false,
   maxWidth,
@@ -44,16 +45,20 @@ function BScanViewer({
   const [magnifierPos, setMagnifierPos] = useState({ x: 0, y: 0 });
   const imgRef = useRef<HTMLImageElement>(null);
 
-  const getLabelClass = () => {
-    switch (label) {
-      case Label.Healthy:
-        return styles.labelHealthy;
-      case Label.Unhealthy:
-        return styles.labelUnhealthy;
-      default:
-        return styles.labelUnlabeled;
+  const getStatus = () => {
+    if (healthy === 1) {
+      return { text: 'Healthy', className: styles.labelHealthy };
     }
+    if (healthy === 0) {
+      return { text: 'Not healthy', className: styles.labelUnhealthy };
+    }
+    return { text: 'Not necessarily healthy', className: styles.labelNotNecessaryHealthy };
   };
+
+  const healthStatus = getStatus();
+  const labeledStatus = isLabeled
+    ? { text: 'Labeled', className: styles.labelLabeled }
+    : { text: 'Unlabeled', className: styles.labelUnlabeled };
 
   const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     const img = imgRef.current;
@@ -78,9 +83,14 @@ function BScanViewer({
     <div className={styles.container}>
       <div className={styles.header}>
         <span className={styles.index}>B-scan #{bscanIndex}</span>
-        <span className={`${styles.labelBadge} ${getLabelClass()}`}>
-          {LabelNames[label]}
-        </span>
+        <div className={styles.statusBadges}>
+          <span className={`${styles.labelBadge} ${healthStatus.className}`}>
+            {healthStatus.text}
+          </span>
+          <span className={`${styles.labelBadge} ${labeledStatus.className}`}>
+            {labeledStatus.text}
+          </span>
+        </div>
       </div>
 
       <div className={styles.sizeControl}>

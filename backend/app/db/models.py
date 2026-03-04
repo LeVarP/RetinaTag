@@ -58,7 +58,7 @@ class BScan(Base):
         scan_id: Foreign key to parent scan
         bscan_index: Index of B-scan within the scan (0-based)
         path: File system path to the B-scan image (unique)
-        label: Labeling status (0=unlabeled, 1=healthy, 2=unhealthy)
+        label: Labeling status (0=unset, 1=healthy, 2=not healthy)
         updated_at: Timestamp when label was last updated
         scan: Relationship to parent scan
     """
@@ -71,7 +71,14 @@ class BScan(Base):
         nullable=False
     )
     bscan_index: Mapped[int] = mapped_column(Integer, nullable=False)
+    bscan_key: Mapped[str | None] = mapped_column(String, nullable=True)
     path: Mapped[str] = mapped_column(String, unique=True, nullable=False)
+    cyst: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    hard_exudate: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    srf: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    ped: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    healthy: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    is_labeled: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     label: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime,
@@ -89,6 +96,8 @@ class BScan(Base):
         Index("idx_scan_bscan", "scan_id", "bscan_index", unique=True),
         # Index for filtering by scan and label
         Index("idx_scan_label", "scan_id", "label"),
+        # Index for filtering unlabeled frames in navigation
+        Index("idx_scan_is_labeled", "scan_id", "is_labeled"),
         # Index for global label queries
         Index("idx_label", "label"),
     )
@@ -96,11 +105,6 @@ class BScan(Base):
     def __repr__(self) -> str:
         label_str = {0: "unlabeled", 1: "healthy", 2: "unhealthy"}.get(self.label, "unknown")
         return f"<BScan(id={self.id}, scan='{self.scan_id}', index={self.bscan_index}, label='{label_str}')>"
-
-    @property
-    def is_labeled(self) -> bool:
-        """Check if B-scan has been labeled (not unlabeled)."""
-        return self.label in (1, 2)
 
     @property
     def label_name(self) -> str:
@@ -143,6 +147,10 @@ class UserSettings(Base):
     auto_advance: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
     hotkey_healthy: Mapped[str] = mapped_column(String, default="a", nullable=False)
     hotkey_unhealthy: Mapped[str] = mapped_column(String, default="s", nullable=False)
+    hotkey_cyst: Mapped[str] = mapped_column(String, default="1", nullable=False)
+    hotkey_hard_exudate: Mapped[str] = mapped_column(String, default="2", nullable=False)
+    hotkey_srf: Mapped[str] = mapped_column(String, default="3", nullable=False)
+    hotkey_ped: Mapped[str] = mapped_column(String, default="4", nullable=False)
     hotkey_next: Mapped[str] = mapped_column(String, default="ArrowRight", nullable=False)
     hotkey_prev: Mapped[str] = mapped_column(String, default="ArrowLeft", nullable=False)
     updated_at: Mapped[datetime] = mapped_column(

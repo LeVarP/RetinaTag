@@ -71,6 +71,10 @@ describe('useKeyboardNav', () => {
           prevFrame: 'ArrowUp',
           labelHealthy: 'd',
           labelUnhealthy: 'f',
+          toggleCyst: 'z',
+          toggleHardExudate: 'x',
+          toggleSrf: 'c',
+          togglePed: 'v',
         },
       })
     );
@@ -102,5 +106,35 @@ describe('useKeyboardNav', () => {
 
     fireKey('ArrowRight');
     expect(onNext).not.toHaveBeenCalled();
+  });
+
+  it('handles pathology toggle hotkeys 1..4 by default', () => {
+    const onToggleCyst = vi.fn();
+    const onToggleHardExudate = vi.fn();
+    const onToggleSrf = vi.fn();
+    const onTogglePed = vi.fn();
+
+    renderHook(() =>
+      useKeyboardNav({
+        onNext: vi.fn(),
+        onPrev: vi.fn(),
+        onLabelHealthy: vi.fn(),
+        onLabelUnhealthy: vi.fn(),
+        onToggleCyst,
+        onToggleHardExudate,
+        onToggleSrf,
+        onTogglePed,
+      })
+    );
+
+    fireKey('1');
+    fireKey('2');
+    fireKey('3');
+    fireKey('4');
+
+    expect(onToggleCyst).toHaveBeenCalledOnce();
+    expect(onToggleHardExudate).toHaveBeenCalledOnce();
+    expect(onToggleSrf).toHaveBeenCalledOnce();
+    expect(onTogglePed).toHaveBeenCalledOnce();
   });
 });

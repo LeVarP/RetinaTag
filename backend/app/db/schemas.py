@@ -5,7 +5,7 @@ Defines data transfer objects (DTOs) for scans, B-scans, and statistics.
 
 from datetime import datetime
 from typing import List, Optional
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 
 # ===== B-SCAN SCHEMAS =====
@@ -27,11 +27,45 @@ class BScanResponse(BScanBase):
     id: int = Field(..., description="B-scan ID")
     scan_id: str = Field(..., description="Parent scan ID")
     path: str = Field(..., description="File path to B-scan image")
+    bscan_key: Optional[str] = Field(None, description="B-scan key from source CSV")
+    cyst: Optional[int] = Field(None, description="Cyst marker from source CSV")
+    hard_exudate: Optional[int] = Field(
+        None, description="Hard exudate marker from source CSV"
+    )
+    srf: Optional[int] = Field(None, description="SRF marker from source CSV")
+    ped: Optional[int] = Field(None, description="PED marker from source CSV")
+    healthy: Optional[int] = Field(
+        None,
+        description="Health status: 1=healthy, 0=not healthy, null=not necessary healthy",
+    )
+    is_labeled: bool = Field(
+        ..., description="Whether scan is considered labeled by marker-field presence"
+    )
     updated_at: datetime = Field(..., description="Last update timestamp")
     preview_url: Optional[str] = Field(None, description="URL to preview image")
     prev_index: Optional[int] = Field(None, description="Index of previous B-scan (null if first)")
     next_index: Optional[int] = Field(None, description="Index of next B-scan (null if last)")
     next_unlabeled_index: Optional[int] = Field(None, description="Index of next unlabeled B-scan")
+
+    class Config:
+        from_attributes = True
+
+
+class BScanListItem(BaseModel):
+    """Compact schema for listing all B-scans in a scan."""
+    id: int
+    scan_id: str
+    bscan_index: int
+    bscan_key: Optional[str] = None
+    path: str
+    cyst: Optional[int] = None
+    hard_exudate: Optional[int] = None
+    srf: Optional[int] = None
+    ped: Optional[int] = None
+    healthy: Optional[int] = None
+    is_labeled: bool
+    label: int
+    updated_at: datetime
 
     class Config:
         from_attributes = True
@@ -48,6 +82,37 @@ class BScanLabelUpdate(BaseModel):
         if v not in (1, 2):
             raise ValueError("Label must be 1 (healthy) or 2 (unhealthy)")
         return v
+
+
+class BScanHealthUpdate(BaseModel):
+    """Schema for updating health status of a B-scan."""
+    healthy: int = Field(
+        ...,
+        ge=0,
+        le=1,
+        description="Health status value: 1=healthy, 0=not healthy",
+    )
+
+
+class BScanPathologyUpdate(BaseModel):
+    """Schema for updating pathology markers of a B-scan."""
+    cyst: Optional[int] = Field(None, ge=0, le=1, description="Cyst marker (0/1)")
+    hard_exudate: Optional[int] = Field(
+        None, ge=0, le=1, description="Hard exudate marker (0/1)"
+    )
+    srf: Optional[int] = Field(None, ge=0, le=1, description="SRF marker (0/1)")
+    ped: Optional[int] = Field(None, ge=0, le=1, description="PED marker (0/1)")
+
+    @model_validator(mode="after")
+    def validate_at_least_one_field(self) -> "BScanPathologyUpdate":
+        if (
+            self.cyst is None
+            and self.hard_exudate is None
+            and self.srf is None
+            and self.ped is None
+        ):
+            raise ValueError("At least one pathology field must be provided")
+        return self
 
 
 # ===== SCAN SCHEMAS =====
@@ -67,8 +132,23 @@ class ScanStats(BaseModel):
     total_bscans: int = Field(..., ge=0, description="Total number of B-scans")
     labeled: int = Field(..., ge=0, description="Number of labeled B-scans")
     unlabeled: int = Field(..., ge=0, description="Number of unlabeled B-scans")
-    healthy: int = Field(..., ge=0, description="Number of healthy B-scans")
-    unhealthy: int = Field(..., ge=0, description="Number of unhealthy B-scans")
+    healthy: int = Field(..., ge=0, description="Number of healthy B-scans (healthy=1)")
+    unhealthy: int = Field(..., ge=0, description="Number of not-healthy B-scans (healthy=0)")
+    not_necessary_healthy: int = Field(
+        ..., ge=0, description="Number of B-scans with healthy unset (null)"
+    )
+    cyst_positive: int = Field(..., ge=0, description="B-scans with Cyst=1")
+    hard_exudate_positive: int = Field(..., ge=0, description="B-scans with Hard exudate=1")
+    srf_positive: int = Field(..., ge=0, description="B-scans with SRF=1")
+    ped_positive: int = Field(..., ge=0, description="B-scans with PED=1")
+    cyst_negative: int = Field(..., ge=0, description="B-scans with Cyst=0")
+    hard_exudate_negative: int = Field(..., ge=0, description="B-scans with Hard exudate=0")
+    srf_negative: int = Field(..., ge=0, description="B-scans with SRF=0")
+    ped_negative: int = Field(..., ge=0, description="B-scans with PED=0")
+    cyst_empty: int = Field(..., ge=0, description="B-scans with Cyst empty")
+    hard_exudate_empty: int = Field(..., ge=0, description="B-scans with Hard exudate empty")
+    srf_empty: int = Field(..., ge=0, description="B-scans with SRF empty")
+    ped_empty: int = Field(..., ge=0, description="B-scans with PED empty")
     percent_complete: float = Field(..., ge=0.0, le=100.0, description="Completion percentage")
 
 
@@ -96,8 +176,17 @@ class GlobalStats(BaseModel):
     total_bscans: int = Field(..., ge=0, description="Total number of B-scans")
     total_labeled: int = Field(..., ge=0, description="Total labeled B-scans")
     total_unlabeled: int = Field(..., ge=0, description="Total unlabeled B-scans")
-    total_healthy: int = Field(..., ge=0, description="Total healthy B-scans")
-    total_unhealthy: int = Field(..., ge=0, description="Total unhealthy B-scans")
+    total_healthy: int = Field(..., ge=0, description="Total healthy B-scans (healthy=1)")
+    total_unhealthy: int = Field(..., ge=0, description="Total not-healthy B-scans (healthy=0)")
+    total_not_necessary_healthy: int = Field(
+        ..., ge=0, description="Total B-scans where healthy is empty"
+    )
+    total_cyst_positive: int = Field(..., ge=0, description="Total B-scans with Cyst=1")
+    total_hard_exudate_positive: int = Field(
+        ..., ge=0, description="Total B-scans with Hard exudate=1"
+    )
+    total_srf_positive: int = Field(..., ge=0, description="Total B-scans with SRF=1")
+    total_ped_positive: int = Field(..., ge=0, description="Total B-scans with PED=1")
     percent_complete: float = Field(..., ge=0.0, le=100.0, description="Overall completion percentage")
 
 
@@ -174,6 +263,10 @@ class UserSettingsResponse(BaseModel):
     auto_advance: bool
     hotkey_healthy: str
     hotkey_unhealthy: str
+    hotkey_cyst: str
+    hotkey_hard_exudate: str
+    hotkey_srf: str
+    hotkey_ped: str
     hotkey_next: str
     hotkey_prev: str
 
@@ -186,5 +279,9 @@ class UserSettingsUpdate(BaseModel):
     auto_advance: Optional[bool] = None
     hotkey_healthy: Optional[str] = Field(None, max_length=20)
     hotkey_unhealthy: Optional[str] = Field(None, max_length=20)
+    hotkey_cyst: Optional[str] = Field(None, max_length=20)
+    hotkey_hard_exudate: Optional[str] = Field(None, max_length=20)
+    hotkey_srf: Optional[str] = Field(None, max_length=20)
+    hotkey_ped: Optional[str] = Field(None, max_length=20)
     hotkey_next: Optional[str] = Field(None, max_length=20)
     hotkey_prev: Optional[str] = Field(None, max_length=20)

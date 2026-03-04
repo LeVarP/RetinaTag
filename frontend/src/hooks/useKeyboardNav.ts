@@ -11,6 +11,10 @@ interface UseKeyboardNavProps {
   onPrev: () => void;
   onLabelHealthy: () => void;
   onLabelUnhealthy: () => void;
+  onToggleCyst?: () => void;
+  onToggleHardExudate?: () => void;
+  onToggleSrf?: () => void;
+  onTogglePed?: () => void;
   hotkeys?: KeyboardHotkeys;
   enabled?: boolean;
 }
@@ -23,6 +27,10 @@ export function useKeyboardNav({
   onPrev,
   onLabelHealthy,
   onLabelUnhealthy,
+  onToggleCyst,
+  onToggleHardExudate,
+  onToggleSrf,
+  onTogglePed,
   hotkeys = DEFAULT_HOTKEYS,
   enabled = true,
 }: UseKeyboardNavProps) {
@@ -59,6 +67,30 @@ export function useKeyboardNav({
       ) {
         event.preventDefault();
         onLabelUnhealthy();
+      } else if (
+        (key === hotkeys.toggleCyst || key === hotkeys.toggleCyst.toUpperCase()) &&
+        onToggleCyst
+      ) {
+        event.preventDefault();
+        onToggleCyst();
+      } else if (
+        (key === hotkeys.toggleHardExudate || key === hotkeys.toggleHardExudate.toUpperCase()) &&
+        onToggleHardExudate
+      ) {
+        event.preventDefault();
+        onToggleHardExudate();
+      } else if (
+        (key === hotkeys.toggleSrf || key === hotkeys.toggleSrf.toUpperCase()) &&
+        onToggleSrf
+      ) {
+        event.preventDefault();
+        onToggleSrf();
+      } else if (
+        (key === hotkeys.togglePed || key === hotkeys.togglePed.toUpperCase()) &&
+        onTogglePed
+      ) {
+        event.preventDefault();
+        onTogglePed();
       }
     };
 
@@ -67,5 +99,16 @@ export function useKeyboardNav({
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [onNext, onPrev, onLabelHealthy, onLabelUnhealthy, hotkeys, enabled]);
+  }, [
+    onNext,
+    onPrev,
+    onLabelHealthy,
+    onLabelUnhealthy,
+    onToggleCyst,
+    onToggleHardExudate,
+    onToggleSrf,
+    onTogglePed,
+    hotkeys,
+    enabled,
+  ]);
 }

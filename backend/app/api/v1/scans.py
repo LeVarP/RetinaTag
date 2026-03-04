@@ -10,7 +10,7 @@ from fastapi.responses import FileResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.database import get_db
-from app.db.schemas import ScanResponse, ScanStats, BScanResponse
+from app.db.schemas import ScanResponse, ScanStats, BScanResponse, BScanListItem
 from app.services.scan_service import scan_service
 from app.services.bscan_service import bscan_service
 from app.services.preview_service import preview_service
@@ -171,3 +171,17 @@ async def get_bscan_preview(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to generate preview: {e}",
         )
+
+
+@router.get("/{scan_id}/bscans", response_model=List[BScanListItem])
+async def list_bscans_for_scan(scan_id: str, db: AsyncSession = Depends(get_db)):
+    """List all B-scans for a scan with marker/health values."""
+    scan = await scan_service.get_scan_by_id(db, scan_id)
+    if not scan:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Scan '{scan_id}' not found",
+        )
+
+    bscans = await bscan_service.list_bscans_for_scan(db, scan_id)
+    return [BScanListItem.model_validate(item, from_attributes=True) for item in bscans]

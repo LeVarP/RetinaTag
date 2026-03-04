@@ -48,7 +48,7 @@ function ScanCard({ scan }: ScanCardProps) {
           </span>
         </div>
         <div className={styles.statRow}>
-          <span className={styles.statLabel}>Unhealthy:</span>
+          <span className={styles.statLabel}>Not healthy:</span>
           <span className={`${styles.statValue} ${styles.unhealthy}`}>
             {stats.unhealthy}
           </span>

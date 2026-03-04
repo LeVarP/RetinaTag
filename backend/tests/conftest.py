@@ -92,8 +92,8 @@ async def sample_scan(test_db):
     for i in range(5):
         bscan = BScan(
             scan_id="TEST_SCAN_001",
-            bscan_index=i + 1,
-            path=f"/data/scans/TEST_SCAN_001/{i + 1}.png",
+            bscan_index=i,
+            path=f"/data/scans/TEST_SCAN_001/{i}.png",
             label=0,
         )
         test_db.add(bscan)

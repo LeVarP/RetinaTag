@@ -3,7 +3,7 @@ Statistics service for OCT B-Scan Labeler.
 Provides global and aggregated statistics across all scans.
 """
 
-from sqlalchemy import select, func
+from sqlalchemy import select, func, case
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models import Scan, BScan
@@ -41,20 +41,28 @@ class StatsService:
         total_bscans_result = await db.execute(select(func.count(BScan.id)))
         total_bscans = total_bscans_result.scalar() or 0
 
-        # Count by label type
-        # Label encoding: 0=unlabeled, 1=healthy, 2=unhealthy
-        label_counts_result = await db.execute(
-            select(BScan.label, func.count(BScan.id)).group_by(BScan.label)
+        counts_result = await db.execute(
+            select(
+                func.sum(case((BScan.is_labeled == 1, 1), else_=0)).label("labeled_count"),
+                func.sum(case((BScan.healthy == 1, 1), else_=0)).label("healthy_count"),
+                func.sum(case((BScan.healthy == 0, 1), else_=0)).label("not_healthy_count"),
+                func.sum(case((BScan.healthy.is_(None), 1), else_=0)).label("not_necessary_healthy_count"),
+                func.sum(case((BScan.cyst == 1, 1), else_=0)).label("cyst_positive"),
+                func.sum(case((BScan.hard_exudate == 1, 1), else_=0)).label("hard_exudate_positive"),
+                func.sum(case((BScan.srf == 1, 1), else_=0)).label("srf_positive"),
+                func.sum(case((BScan.ped == 1, 1), else_=0)).label("ped_positive"),
+            )
         )
-        label_counts = {label: count for label, count in label_counts_result.all()}
-
-        # Extract counts
-        unlabeled_count = label_counts.get(0, 0)
-        healthy_count = label_counts.get(1, 0)
-        unhealthy_count = label_counts.get(2, 0)
-
-        # Labeled = healthy + unhealthy (remember: viewed = labeled)
-        labeled_count = healthy_count + unhealthy_count
+        counts = counts_result.one()
+        labeled_count = counts.labeled_count or 0
+        healthy_count = counts.healthy_count or 0
+        unhealthy_count = counts.not_healthy_count or 0
+        not_necessary_healthy_count = counts.not_necessary_healthy_count or 0
+        cyst_positive = counts.cyst_positive or 0
+        hard_exudate_positive = counts.hard_exudate_positive or 0
+        srf_positive = counts.srf_positive or 0
+        ped_positive = counts.ped_positive or 0
+        unlabeled_count = max(total_bscans - labeled_count, 0)
 
         # Calculate completion percentage
         completion_percentage = (
@@ -68,6 +76,11 @@ class StatsService:
             total_unlabeled=unlabeled_count,
             total_healthy=healthy_count,
             total_unhealthy=unhealthy_count,
+            total_not_necessary_healthy=not_necessary_healthy_count,
+            total_cyst_positive=cyst_positive,
+            total_hard_exudate_positive=hard_exudate_positive,
+            total_srf_positive=srf_positive,
+            total_ped_positive=ped_positive,
             percent_complete=round(completion_percentage, 2),
         )
 
@@ -89,7 +102,7 @@ class StatsService:
                 Scan.created_at,
                 Scan.updated_at,
                 func.count(BScan.id).label("total_bscans"),
-                func.sum(func.cast(BScan.label != 0, db.bind.dialect.type_descriptor(int))).label("labeled_count"),
+                func.sum(BScan.is_labeled).label("labeled_count"),
             )
             .outerjoin(BScan, Scan.scan_id == BScan.scan_id)
             .group_by(Scan.scan_id, Scan.created_at, Scan.updated_at)
@@ -113,6 +126,46 @@ class StatsService:
             "total_scans": len(scans_summary),
             "scans": scans_summary,
         }
+
+    @staticmethod
+    async def get_bscans_export_rows(db: AsyncSession) -> list[dict]:
+        """Get flattened B-scan rows for CSV export."""
+        result = await db.execute(
+            select(
+                BScan.scan_id,
+                BScan.bscan_index,
+                BScan.bscan_key,
+                BScan.healthy,
+                BScan.is_labeled,
+                BScan.label,
+                BScan.cyst,
+                BScan.hard_exudate,
+                BScan.srf,
+                BScan.ped,
+                BScan.updated_at,
+            )
+            .order_by(BScan.scan_id.asc(), BScan.bscan_index.asc())
+        )
+
+        rows = []
+        for row in result.all():
+            rows.append(
+                {
+                    "scan_id": row.scan_id,
+                    "bscan_index": row.bscan_index,
+                    "bscan_key": row.bscan_key,
+                    "healthy": row.healthy,
+                    "is_labeled": row.is_labeled,
+                    "label": row.label,
+                    "cyst": row.cyst,
+                    "hard_exudate": row.hard_exudate,
+                    "srf": row.srf,
+                    "ped": row.ped,
+                    "updated_at": row.updated_at,
+                }
+            )
+
+        return rows
 
 
 # Global stats service instance

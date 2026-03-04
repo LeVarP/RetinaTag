@@ -16,7 +16,7 @@ function CookieConsent() {
   return (
     <div className={styles.banner}>
       <p className={styles.text}>
-        This application uses cookies for authentication purposes only. No tracking or analytics cookies are used.
+        🍪 This application uses cookies for authentication purposes only. No tracking or analytics cookies are used.
       </p>
       <button className={styles.acceptButton} onClick={handleAccept}>
         I Understand

@@ -14,6 +14,12 @@
   align-items: center;
 }
 
+.statusBadges {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
 .index {
   font-size: var(--font-size-lg);
   font-weight: 600;
@@ -38,8 +44,18 @@
   color: white;
 }
 
+.labelNotNecessaryHealthy {
+  background-color: var(--color-warning);
+  color: white;
+}
+
 .labelUnlabeled {
   background-color: var(--color-unlabeled);
+  color: white;
+}
+
+.labelLabeled {
+  background-color: var(--color-primary);
   color: white;
 }
 

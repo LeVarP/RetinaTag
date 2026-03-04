@@ -1,108 +1,110 @@
 # RetinaTag Setup Guide
 
-Three steps: create the database, configure environment, start containers.
-
 ## Prerequisites
 
-- Python 3 (any version — the setup script uses only the standard library)
-- Docker & Docker Compose
+- Python 3
+- Docker + Docker Compose v2 (`docker compose`)
 
-## Step 1: Create the database
+## 1) Create Database
 
 ```bash
 python setup/create_db.py
 ```
 
-This creates an empty SQLite database at `data/database/oct_labeler.db` with all required tables.
+By default, this creates `data/database/oct_labeler.db` and seeds it from:
+- `backend/app/db/Overview info_all_sheets - Overview info_all_sheets.csv`
 
-Use `--output` to specify a different path:
+Notes:
+- `bscan_index` is normalized to **0-based**.
+- Duplicate hard exudate columns in CSV are merged (`OR`).
+- `healthy` is tri-state (`1/0/null`), `is_labeled` is marker-based.
+
+Useful options:
 
 ```bash
+# Create DB without CSV seed
+python setup/create_db.py --no-seed
+
+# Custom DB file
 python setup/create_db.py --output /path/to/oct_labeler.db
+
+# Custom CSV path
+python setup/create_db.py --csv /path/to/data.csv
 ```
 
-## Step 2: Populate the database
-
-Insert your data into the `scans` and `bscans` tables. The app does **not** prescribe how your images are organized — only that each B-scan row points to a valid image path.
-
-### Schema
-
-**scans** — one row per OCT scan / tomogram:
-
-| Column       | Type     | Description              |
-|--------------|----------|--------------------------|
-| `scan_id`    | TEXT PK  | Unique scan identifier   |
-| `created_at` | DATETIME | Auto-filled              |
-| `updated_at` | DATETIME | Auto-filled              |
-
-**bscans** — one row per B-scan frame:
-
-| Column        | Type        | Description                                    |
-|---------------|-------------|------------------------------------------------|
-| `id`          | INTEGER PK  | Auto-increment                                 |
-| `scan_id`     | TEXT FK      | References `scans.scan_id`                    |
-| `bscan_index` | INTEGER     | Frame position within the scan (1-based)       |
-| `path`        | TEXT UNIQUE | **Absolute path** to the image file            |
-| `label`       | INTEGER     | `0` = unlabeled, `1` = healthy, `2` = unhealthy |
-| `updated_at`  | DATETIME    | Auto-filled                                    |
-
-> **Important:** the `path` column must contain the path as it will be seen **inside the Docker container**. Since the image directory is mounted at `/mnt/oct-data`, paths should look like `/mnt/oct-data/patient_001/frame_042.png`.
-
-### Example
-
-```sql
--- Insert a scan
-INSERT INTO scans (scan_id) VALUES ('PATIENT_001');
-
--- Insert B-scans (all unlabeled by default)
-INSERT INTO bscans (scan_id, bscan_index, path) VALUES
-    ('PATIENT_001', 1, '/mnt/oct-data/PATIENT_001/001.png'),
-    ('PATIENT_001', 2, '/mnt/oct-data/PATIENT_001/002.png'),
-    ('PATIENT_001', 3, '/mnt/oct-data/PATIENT_001/003.png');
-```
-
-You can use any tool: `sqlite3` CLI, Python, a custom script, etc.
-
-## Step 3: Configure environment
+## 2) Configure Environment
 
 ```bash
 cp setup/.env.example .env
 ```
 
-Open `.env` and set the **required** variables:
+Required in `.env`:
 
-| Variable         | What to set                                           |
-|------------------|-------------------------------------------------------|
-| `JWT_SECRET_KEY` | Random secret — generate with `openssl rand -hex 32`  |
-| `OCT_DATA_PATH`  | Absolute path on the **host** to your image directory |
+- `JWT_SECRET_KEY` (generate: `openssl rand -hex 32`)
+- `OCT_DATA_PATH` (absolute host path to images)
 
-Everything else has working defaults. See `.env.example` for the full list.
+Example `OCT_DATA_PATH`:
+- `/home/user/datasets/oct_images`
 
-## Step 4: Start
+Inside container this is mounted to `/mnt/oct-data`.
 
-```bash
-docker-compose up -d
-```
-
-Open http://localhost in a browser. Log in with `admin` / `admin` (default credentials, created on first startup).
-
-### Verify
+## 3) Start
 
 ```bash
-# Check containers are running
-docker-compose ps
-
-# Check backend health
-curl http://localhost:8000/health
-
-# View logs
-docker-compose logs -f backend
+docker compose up --build -d
 ```
 
-## Stopping
+Open:
+- Frontend: http://localhost
+
+LAN access:
+- Open `http://<HOST_LAN_IP>/` from any device in your local network.
+- Find host LAN IP on Linux: `hostname -I` or `ip -4 addr`.
+
+External access:
+- Open `http://<HOST_PUBLIC_IP>/` if your network/firewall/router allows inbound TCP `80` to this host.
+
+Login:
+- `admin` / `admin` (auto-created if no users exist)
+
+## 4) Verify
 
 ```bash
-docker-compose down
+docker compose ps
+# frontend health (from host):
+curl -I http://localhost/
+
+# backend health (internal, because backend port is not exposed):
+docker compose exec -T backend python -c "import urllib.request; print(urllib.request.urlopen('http://localhost:8000/health').read().decode())"
 ```
 
-Your database and images are stored outside the containers (in `data/` and the mounted image directory), so nothing is lost.
+## Network Access
+
+This setup is configured so that:
+- frontend is exposed on port `80`
+- backend is **not** exposed to host/network directly
+- nginx does not apply source-IP restrictions by default
+
+If you need to limit access, enforce it at firewall/router level or re-add nginx ACL rules.
+
+## 5) Stop
+
+```bash
+docker compose down
+```
+
+## Schema Highlights
+
+### `bscans`
+
+- `scan_id`, `bscan_index` (0-based), `bscan_key`, `path`
+- `cyst`, `hard_exudate`, `srf`, `ped`
+- `healthy` (1/0/null)
+- `is_labeled`, `label`, `updated_at`
+
+### `user_settings`
+
+- `auto_advance`
+- `hotkey_healthy`, `hotkey_unhealthy`
+- `hotkey_cyst`, `hotkey_hard_exudate`, `hotkey_srf`, `hotkey_ped`
+- `hotkey_next`, `hotkey_prev`

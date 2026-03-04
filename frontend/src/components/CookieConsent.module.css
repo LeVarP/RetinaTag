@@ -1,8 +1,9 @@
 .banner {
   position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(920px, calc(100% - 24px));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -10,7 +11,8 @@
   padding: var(--spacing-md) var(--spacing-xl);
   background-color: var(--color-text);
   color: white;
-  box-shadow: var(--shadow-lg);
+  border-radius: var(--radius-md);
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.34);
   z-index: 1000;
 }
 
@@ -39,5 +41,7 @@
     flex-direction: column;
     gap: var(--spacing-sm);
     text-align: center;
+    width: calc(100% - 16px);
+    bottom: 10px;
   }
 }

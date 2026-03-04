@@ -4,7 +4,7 @@ Handles listing scans with progress statistics.
 """
 
 from typing import List, Optional
-from sqlalchemy import select, func
+from sqlalchemy import select, func, case
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models import Scan, BScan
@@ -78,28 +78,43 @@ class ScanService:
         Returns:
             ScanStats with calculated metrics
         """
-        # Count total B-scans
-        total_result = await db.execute(
-            select(func.count(BScan.id)).where(BScan.scan_id == scan_id)
-        )
-        total_bscans = total_result.scalar() or 0
-
-        # Count by label type
-        # Label encoding: 0=unlabeled, 1=healthy, 2=unhealthy
-        label_counts_result = await db.execute(
-            select(BScan.label, func.count(BScan.id))
+        result = await db.execute(
+            select(
+                func.count(BScan.id).label("total_bscans"),
+                func.sum(case((BScan.is_labeled == 1, 1), else_=0)).label("labeled_count"),
+                func.sum(case((BScan.healthy == 1, 1), else_=0)).label("healthy_count"),
+                func.sum(case((BScan.healthy == 0, 1), else_=0)).label("not_healthy_count"),
+                func.sum(case((BScan.healthy.is_(None), 1), else_=0)).label("not_necessary_healthy_count"),
+                func.sum(case((BScan.cyst == 1, 1), else_=0)).label("cyst_positive"),
+                func.sum(case((BScan.hard_exudate == 1, 1), else_=0)).label("hard_exudate_positive"),
+                func.sum(case((BScan.srf == 1, 1), else_=0)).label("srf_positive"),
+                func.sum(case((BScan.ped == 1, 1), else_=0)).label("ped_positive"),
+                func.sum(case((BScan.cyst == 0, 1), else_=0)).label("cyst_negative"),
+                func.sum(case((BScan.hard_exudate == 0, 1), else_=0)).label("hard_exudate_negative"),
+                func.sum(case((BScan.srf == 0, 1), else_=0)).label("srf_negative"),
+                func.sum(case((BScan.ped == 0, 1), else_=0)).label("ped_negative"),
+            )
             .where(BScan.scan_id == scan_id)
-            .group_by(BScan.label)
         )
-        label_counts = {label: count for label, count in label_counts_result.all()}
-
-        # Extract counts
-        unlabeled_count = label_counts.get(0, 0)
-        healthy_count = label_counts.get(1, 0)
-        unhealthy_count = label_counts.get(2, 0)
-
-        # Labeled = healthy + unhealthy (remember: viewed = labeled)
-        labeled_count = healthy_count + unhealthy_count
+        row = result.one()
+        total_bscans = row.total_bscans or 0
+        labeled_count = row.labeled_count or 0
+        healthy_count = row.healthy_count or 0
+        unhealthy_count = row.not_healthy_count or 0
+        not_necessary_healthy_count = row.not_necessary_healthy_count or 0
+        cyst_positive = row.cyst_positive or 0
+        hard_exudate_positive = row.hard_exudate_positive or 0
+        srf_positive = row.srf_positive or 0
+        ped_positive = row.ped_positive or 0
+        cyst_negative = row.cyst_negative or 0
+        hard_exudate_negative = row.hard_exudate_negative or 0
+        srf_negative = row.srf_negative or 0
+        ped_negative = row.ped_negative or 0
+        unlabeled_count = max(total_bscans - labeled_count, 0)
+        cyst_empty = max(total_bscans - cyst_positive - cyst_negative, 0)
+        hard_exudate_empty = max(total_bscans - hard_exudate_positive - hard_exudate_negative, 0)
+        srf_empty = max(total_bscans - srf_positive - srf_negative, 0)
+        ped_empty = max(total_bscans - ped_positive - ped_negative, 0)
 
         # Calculate completion percentage
         completion_percentage = (
@@ -112,6 +127,19 @@ class ScanService:
             unlabeled=unlabeled_count,
             healthy=healthy_count,
             unhealthy=unhealthy_count,
+            not_necessary_healthy=not_necessary_healthy_count,
+            cyst_positive=cyst_positive,
+            hard_exudate_positive=hard_exudate_positive,
+            srf_positive=srf_positive,
+            ped_positive=ped_positive,
+            cyst_negative=cyst_negative,
+            hard_exudate_negative=hard_exudate_negative,
+            srf_negative=srf_negative,
+            ped_negative=ped_negative,
+            cyst_empty=cyst_empty,
+            hard_exudate_empty=hard_exudate_empty,
+            srf_empty=srf_empty,
+            ped_empty=ped_empty,
             percent_complete=round(completion_percentage, 2),
         )
 

@@ -77,9 +77,12 @@ function ProfilePage() {
 
   const handleResetDefaults = () => {
     setLocalSettings({
-      auto_advance: true,
       hotkey_healthy: DEFAULT_HOTKEYS.labelHealthy,
       hotkey_unhealthy: DEFAULT_HOTKEYS.labelUnhealthy,
+      hotkey_cyst: DEFAULT_HOTKEYS.toggleCyst,
+      hotkey_hard_exudate: DEFAULT_HOTKEYS.toggleHardExudate,
+      hotkey_srf: DEFAULT_HOTKEYS.toggleSrf,
+      hotkey_ped: DEFAULT_HOTKEYS.togglePed,
       hotkey_next: DEFAULT_HOTKEYS.nextFrame,
       hotkey_prev: DEFAULT_HOTKEYS.prevFrame,
     });
@@ -146,20 +149,8 @@ function ProfilePage() {
       </section>
 
       {/* Labeling Preferences */}
-      <section className={styles.section}>
+      <section className={styles.section} id="hotkeys">
         <h3>Labeling Preferences</h3>
-
-        <div className={styles.toggleRow}>
-          <label htmlFor="autoAdvance">Auto-advance after labeling</label>
-          <input
-            id="autoAdvance"
-            type="checkbox"
-            checked={localSettings.auto_advance}
-            onChange={(e) =>
-              setLocalSettings((s) => ({ ...s, auto_advance: e.target.checked }))
-            }
-          />
-        </div>
 
         <div className={styles.hotkeysGrid}>
           <HotkeyInput
@@ -168,7 +159,7 @@ function ProfilePage() {
             onChange={(key) => setLocalSettings((s) => ({ ...s, hotkey_healthy: key }))}
           />
           <HotkeyInput
-            label="Unhealthy"
+            label="Not healthy"
             value={localSettings.hotkey_unhealthy}
             onChange={(key) => setLocalSettings((s) => ({ ...s, hotkey_unhealthy: key }))}
           />
@@ -181,6 +172,26 @@ function ProfilePage() {
             label="Previous frame"
             value={localSettings.hotkey_prev}
             onChange={(key) => setLocalSettings((s) => ({ ...s, hotkey_prev: key }))}
+          />
+          <HotkeyInput
+            label="Toggle Cyst"
+            value={localSettings.hotkey_cyst}
+            onChange={(key) => setLocalSettings((s) => ({ ...s, hotkey_cyst: key }))}
+          />
+          <HotkeyInput
+            label="Toggle Hard exudate"
+            value={localSettings.hotkey_hard_exudate}
+            onChange={(key) => setLocalSettings((s) => ({ ...s, hotkey_hard_exudate: key }))}
+          />
+          <HotkeyInput
+            label="Toggle SRF"
+            value={localSettings.hotkey_srf}
+            onChange={(key) => setLocalSettings((s) => ({ ...s, hotkey_srf: key }))}
+          />
+          <HotkeyInput
+            label="Toggle PED"
+            value={localSettings.hotkey_ped}
+            onChange={(key) => setLocalSettings((s) => ({ ...s, hotkey_ped: key }))}
           />
         </div>
 
