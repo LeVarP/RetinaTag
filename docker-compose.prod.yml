@@ -1,0 +1,20 @@
+# RetinaTag — prod overrides
+# Usage: docker compose -f docker-compose.yml -f docker-compose.prod.yml ...
+# Or via Makefile: make prod-up / make prod-rebuild
+
+services:
+  backend:
+    container_name: retinatag-backend
+    volumes:
+      - ./data:/app/data
+    environment:
+      # REQUIRED: set in .env — run: openssl rand -hex 32
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY:-CHANGE-ME}
+    restart: unless-stopped
+
+  frontend:
+    container_name: retinatag-frontend
+    ports:
+      - "80:80"
+    restart: unless-stopped
+

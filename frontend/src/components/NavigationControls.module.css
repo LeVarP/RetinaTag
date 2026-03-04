@@ -57,12 +57,13 @@
 .current {
   color: var(--color-primary);
   cursor: pointer;
-  border-bottom: 2px dashed transparent;
+  border-bottom: 2px dashed var(--color-primary);
   transition: border-color 0.15s;
 }
 
 .current:hover {
   border-bottom-color: var(--color-primary);
+  opacity: 0.75;
 }
 
 .indexInput {

@@ -1,7 +1,12 @@
 # Makefile for OCT B-Scan Labeler
 # Common commands for development, testing, and deployment
 
-.PHONY: help install dev-backend dev-frontend test lint format docker-build docker-up docker-down clean
+PROD  = docker compose -p retinatag-prod  -f docker-compose.yml -f docker-compose.prod.yml
+STAGE = docker compose -p retinatag-stage -f docker-compose.yml -f docker-compose.stage.yml
+
+.PHONY: help install dev-backend dev-frontend test lint format \
+        prod-up prod-down prod-rebuild stage-up stage-down stage-build \
+        docker-build docker-up docker-down clean
 
 # Default target: show help
 help:
@@ -25,10 +30,15 @@ help:
 	@echo "  make format          Format all code (backend + frontend)"
 	@echo "  make typecheck       Type check all code"
 	@echo ""
-	@echo "Docker:"
-	@echo "  make docker-build    Build Docker images"
-	@echo "  make docker-up       Start Docker containers"
-	@echo "  make docker-down     Stop Docker containers"
+	@echo "Docker (prod):"
+	@echo "  make prod-up         Start prod (port 80)"
+	@echo "  make prod-down       Stop prod"
+	@echo "  make prod-rebuild    Rebuild and restart prod"
+	@echo ""
+	@echo "Docker (stage):"
+	@echo "  make stage-up        Start stage (port 8080)"
+	@echo "  make stage-down      Stop stage"
+	@echo "  make stage-build     Rebuild and restart stage"
 	@echo ""
 	@echo "Utilities:"
 	@echo "  make clean           Clean build artifacts and caches"
@@ -104,18 +114,23 @@ typecheck:
 
 # ===== DOCKER =====
 
-docker-build:
-	@echo "Building Docker images..."
-	docker compose build
+prod-up:
+	$(PROD) up -d
 
-docker-up:
-	@echo "Starting Docker containers..."
-	docker compose up -d
-	@echo "Application available at http://localhost"
+prod-down:
+	$(PROD) down
 
-docker-down:
-	@echo "Stopping Docker containers..."
-	docker compose down
+prod-rebuild:
+	$(PROD) up --build -d
+
+stage-up:
+	$(STAGE) up -d
+
+stage-down:
+	$(STAGE) down
+
+stage-build:
+	$(STAGE) up --build -d
 
 # ===== UTILITIES =====
 

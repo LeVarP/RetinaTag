@@ -205,7 +205,7 @@ function LabelingPage() {
 
         <div className={styles.controls}>
           <NavigationControls
-            currentIndex={currentIndex}
+            currentIndex={bscan.bscan_index}
             totalBScans={totalBScans}
             hasPrev={hasPrev}
             hasNext={hasNext}

@@ -3,6 +3,7 @@
 
 # ===== DATA DIRECTORY (contains images, cache, database) =====
 data/
+data-stage/
 
 # ===== PYTHON =====
 # Byte-compiled / optimized / DLL files

@@ -1,24 +1,19 @@
-# RetinaTag — Docker Compose configuration
-# See setup/SETUP.md for full instructions
+# RetinaTag — base Docker Compose config
+# Do not use directly. Use docker-compose.prod.yml or docker-compose.stage.yml as overlay.
+# See CONTRIBUTING.md for usage.
 
 services:
   backend:
     build:
       context: .
       dockerfile: docker/backend.Dockerfile
-    container_name: retinatag-backend
-    # Do not expose backend directly; frontend proxies /api internally.
     volumes:
-      - ./data:/app/data
       # REQUIRED: set OCT_DATA_PATH in .env to your image directory on the host
       - ${OCT_DATA_PATH:-/data/oct-500}:/mnt/oct-data:ro
     environment:
       - DATABASE_URL=sqlite+aiosqlite:////app/data/database/oct_labeler.db
       - DATA_DIR=/app/data
       - CACHE_DIR=/app/data/cache
-      # REQUIRED: set in .env — run: openssl rand -hex 32
-      - JWT_SECRET_KEY=${JWT_SECRET_KEY:-CHANGE-ME}
-    restart: unless-stopped
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
       interval: 30s
@@ -30,19 +25,11 @@ services:
     build:
       context: .
       dockerfile: docker/frontend.Dockerfile
-    container_name: retinatag-frontend
-    ports:
-      - "80:80"
     depends_on:
       - backend
-    restart: unless-stopped
     healthcheck:
       test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1/"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 5s
-
-networks:
-  default:
-    name: retinatag-network

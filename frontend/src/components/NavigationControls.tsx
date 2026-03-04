@@ -85,7 +85,7 @@ function NavigationControls({
             </span>
           )}
           <span className={styles.separator}>/</span>
-          <span className={styles.total}>{maxIndex}</span>
+          <span className={styles.total}>{totalBScans - 1}</span>
         </div>
 
         <button

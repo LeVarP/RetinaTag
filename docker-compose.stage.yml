@@ -1,0 +1,20 @@
+# RetinaTag — stage overrides
+# Usage: docker compose -f docker-compose.yml -f docker-compose.stage.yml ...
+# Or via Makefile: make stage-up / make stage-build
+
+services:
+  backend:
+    container_name: retinatag-stage-backend
+    volumes:
+      - ./data-stage:/app/data
+    environment:
+      # REQUIRED: set in .env — run: openssl rand -hex 32
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY_STAGE:-CHANGE-ME-STAGE}
+    restart: unless-stopped
+
+  frontend:
+    container_name: retinatag-stage-frontend
+    ports:
+      - "8080:80"
+    restart: unless-stopped
+
