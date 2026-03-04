@@ -15,6 +15,7 @@ interface UseKeyboardNavProps {
   onToggleHardExudate?: () => void;
   onToggleSrf?: () => void;
   onTogglePed?: () => void;
+  onSetAllPathologiesZero?: () => void;
   hotkeys?: KeyboardHotkeys;
   enabled?: boolean;
 }
@@ -31,6 +32,7 @@ export function useKeyboardNav({
   onToggleHardExudate,
   onToggleSrf,
   onTogglePed,
+  onSetAllPathologiesZero,
   hotkeys = DEFAULT_HOTKEYS,
   enabled = true,
 }: UseKeyboardNavProps) {
@@ -91,6 +93,13 @@ export function useKeyboardNav({
       ) {
         event.preventDefault();
         onTogglePed();
+      } else if (
+        (key === hotkeys.setAllPathologiesZero ||
+          key === hotkeys.setAllPathologiesZero.toUpperCase()) &&
+        onSetAllPathologiesZero
+      ) {
+        event.preventDefault();
+        onSetAllPathologiesZero();
       }
     };
 
@@ -108,6 +117,7 @@ export function useKeyboardNav({
     onToggleHardExudate,
     onToggleSrf,
     onTogglePed,
+    onSetAllPathologiesZero,
     hotkeys,
     enabled,
   ]);

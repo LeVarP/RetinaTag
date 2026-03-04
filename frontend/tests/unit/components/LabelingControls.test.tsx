@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, within } from '@testing-library/react';
 import LabelingControls from '@/components/LabelingControls';
 import { Label } from '@/types';
 
@@ -132,5 +132,11 @@ describe('LabelingControls', () => {
 
     fireEvent.click(screen.getByText('Set all pathologies = 0'));
     expect(onSetAllPathologiesZero).toHaveBeenCalledOnce();
+  });
+
+  it('shows default hotkey for setting all pathology markers to 0', () => {
+    render(<LabelingControls {...defaultProps} />);
+    const resetButton = screen.getByLabelText('Set all pathology markers to 0');
+    expect(within(resetButton).getByText('0')).toBeInTheDocument();
   });
 });

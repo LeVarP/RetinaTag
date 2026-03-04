@@ -34,6 +34,7 @@ async def get_my_settings(
         hotkey_hard_exudate=settings.hotkey_hard_exudate,
         hotkey_srf=settings.hotkey_srf,
         hotkey_ped=settings.hotkey_ped,
+        hotkey_set_all_pathologies_zero=settings.hotkey_set_all_pathologies_zero,
         hotkey_next=settings.hotkey_next,
         hotkey_prev=settings.hotkey_prev,
     )
@@ -55,6 +56,7 @@ async def update_my_settings(
         hotkey_hard_exudate=settings.hotkey_hard_exudate,
         hotkey_srf=settings.hotkey_srf,
         hotkey_ped=settings.hotkey_ped,
+        hotkey_set_all_pathologies_zero=settings.hotkey_set_all_pathologies_zero,
         hotkey_next=settings.hotkey_next,
         hotkey_prev=settings.hotkey_prev,
     )

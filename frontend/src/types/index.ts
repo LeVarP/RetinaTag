@@ -142,6 +142,7 @@ export interface KeyboardHotkeys {
   toggleHardExudate: string;
   toggleSrf: string;
   togglePed: string;
+  setAllPathologiesZero: string;
 }
 
 /**
@@ -156,6 +157,7 @@ export const DEFAULT_HOTKEYS: KeyboardHotkeys = {
   toggleHardExudate: '2',
   toggleSrf: '3',
   togglePed: '4',
+  setAllPathologiesZero: '0',
 };
 
 // ===== AUTH TYPES =====
@@ -197,6 +199,7 @@ export interface UserSettings {
   hotkey_hard_exudate: string;
   hotkey_srf: string;
   hotkey_ped: string;
+  hotkey_set_all_pathologies_zero: string;
   hotkey_next: string;
   hotkey_prev: string;
 }
@@ -208,6 +211,7 @@ export interface UserSettingsUpdate {
   hotkey_hard_exudate?: string;
   hotkey_srf?: string;
   hotkey_ped?: string;
+  hotkey_set_all_pathologies_zero?: string;
   hotkey_next?: string;
   hotkey_prev?: string;
 }

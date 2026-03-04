@@ -225,6 +225,10 @@
 }
 
 .pathologyResetButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-sm);
   padding: 8px 14px;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);

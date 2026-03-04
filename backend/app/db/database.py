@@ -269,6 +269,7 @@ def _ensure_user_settings_columns(sync_conn) -> None:
         "hotkey_hard_exudate": "TEXT NOT NULL DEFAULT '2'",
         "hotkey_srf": "TEXT NOT NULL DEFAULT '3'",
         "hotkey_ped": "TEXT NOT NULL DEFAULT '4'",
+        "hotkey_set_all_pathologies_zero": "TEXT NOT NULL DEFAULT '0'",
     }
 
     for column_name, column_type in required_columns.items():
@@ -286,7 +287,8 @@ def _ensure_user_settings_columns(sync_conn) -> None:
                 hotkey_cyst = COALESCE(NULLIF(hotkey_cyst, ''), '1'),
                 hotkey_hard_exudate = COALESCE(NULLIF(hotkey_hard_exudate, ''), '2'),
                 hotkey_srf = COALESCE(NULLIF(hotkey_srf, ''), '3'),
-                hotkey_ped = COALESCE(NULLIF(hotkey_ped, ''), '4')
+                hotkey_ped = COALESCE(NULLIF(hotkey_ped, ''), '4'),
+                hotkey_set_all_pathologies_zero = COALESCE(NULLIF(hotkey_set_all_pathologies_zero, ''), '0')
             """
         )
     )

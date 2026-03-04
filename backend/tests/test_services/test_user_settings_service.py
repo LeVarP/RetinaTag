@@ -19,6 +19,7 @@ async def test_get_settings_creates_defaults(test_db):
     assert settings.hotkey_hard_exudate == "2"
     assert settings.hotkey_srf == "3"
     assert settings.hotkey_ped == "4"
+    assert settings.hotkey_set_all_pathologies_zero == "0"
 
 
 @pytest.mark.asyncio
@@ -47,6 +48,7 @@ async def test_update_all_settings(test_db):
         hotkey_hard_exudate="h",
         hotkey_srf="r",
         hotkey_ped="p",
+        hotkey_set_all_pathologies_zero="z",
         hotkey_next="ArrowDown",
         hotkey_prev="ArrowUp",
     )
@@ -60,5 +62,6 @@ async def test_update_all_settings(test_db):
     assert settings.hotkey_hard_exudate == "h"
     assert settings.hotkey_srf == "r"
     assert settings.hotkey_ped == "p"
+    assert settings.hotkey_set_all_pathologies_zero == "z"
     assert settings.hotkey_next == "ArrowDown"
     assert settings.hotkey_prev == "ArrowUp"

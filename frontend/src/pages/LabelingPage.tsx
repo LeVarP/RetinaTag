@@ -7,7 +7,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import { api } from '@/services/api';
-import type { KeyboardHotkeys } from '@/types';
+import { DEFAULT_HOTKEYS, type KeyboardHotkeys } from '@/types';
 import { useSettings } from '@/context/SettingsContext';
 import { useKeyboardNav } from '@/hooks/useKeyboardNav';
 import { usePrefetch } from '@/hooks/usePrefetch';
@@ -35,6 +35,8 @@ function LabelingPage() {
     toggleHardExudate: settings.hotkey_hard_exudate,
     toggleSrf: settings.hotkey_srf,
     togglePed: settings.hotkey_ped,
+    setAllPathologiesZero:
+      settings.hotkey_set_all_pathologies_zero ?? DEFAULT_HOTKEYS.setAllPathologiesZero,
   };
 
   // Fetch scan stats to get total B-scans
@@ -136,6 +138,7 @@ function LabelingPage() {
     onToggleHardExudate: toggleHardExudate,
     onToggleSrf: toggleSrf,
     onTogglePed: togglePed,
+    onSetAllPathologiesZero: setAllPathologiesZero,
     hotkeys,
     enabled: !!bscan && !isLabeling,
   });
@@ -234,6 +237,7 @@ function LabelingPage() {
             hotkeyHardExudate={settings.hotkey_hard_exudate}
             hotkeySrf={settings.hotkey_srf}
             hotkeyPed={settings.hotkey_ped}
+            hotkeySetAllPathologiesZero={hotkeys.setAllPathologiesZero}
           />
         </div>
       </div>

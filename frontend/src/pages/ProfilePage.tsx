@@ -83,6 +83,7 @@ function ProfilePage() {
       hotkey_hard_exudate: DEFAULT_HOTKEYS.toggleHardExudate,
       hotkey_srf: DEFAULT_HOTKEYS.toggleSrf,
       hotkey_ped: DEFAULT_HOTKEYS.togglePed,
+      hotkey_set_all_pathologies_zero: DEFAULT_HOTKEYS.setAllPathologiesZero,
       hotkey_next: DEFAULT_HOTKEYS.nextFrame,
       hotkey_prev: DEFAULT_HOTKEYS.prevFrame,
     });
@@ -192,6 +193,13 @@ function ProfilePage() {
             label="Toggle PED"
             value={localSettings.hotkey_ped}
             onChange={(key) => setLocalSettings((s) => ({ ...s, hotkey_ped: key }))}
+          />
+          <HotkeyInput
+            label="Set all pathologies = 0"
+            value={localSettings.hotkey_set_all_pathologies_zero}
+            onChange={(key) =>
+              setLocalSettings((s) => ({ ...s, hotkey_set_all_pathologies_zero: key }))
+            }
           />
         </div>
 

@@ -1,7 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useKeyboardNav } from '@/hooks/useKeyboardNav';
-import { DEFAULT_HOTKEYS } from '@/types';
 
 function fireKey(key: string) {
   window.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true }));
@@ -13,6 +12,7 @@ describe('useKeyboardNav', () => {
     const onPrev = vi.fn();
     const onHealthy = vi.fn();
     const onUnhealthy = vi.fn();
+    const onSetAllPathologiesZero = vi.fn();
 
     renderHook(() =>
       useKeyboardNav({
@@ -20,6 +20,7 @@ describe('useKeyboardNav', () => {
         onPrev,
         onLabelHealthy: onHealthy,
         onLabelUnhealthy: onUnhealthy,
+        onSetAllPathologiesZero,
       })
     );
 
@@ -34,6 +35,9 @@ describe('useKeyboardNav', () => {
 
     fireKey('s');
     expect(onUnhealthy).toHaveBeenCalledOnce();
+
+    fireKey('0');
+    expect(onSetAllPathologiesZero).toHaveBeenCalledOnce();
   });
 
   it('handles uppercase label keys', () => {
@@ -75,6 +79,7 @@ describe('useKeyboardNav', () => {
           toggleHardExudate: 'x',
           toggleSrf: 'c',
           togglePed: 'v',
+          setAllPathologiesZero: 'b',
         },
       })
     );
@@ -136,5 +141,36 @@ describe('useKeyboardNav', () => {
     expect(onToggleHardExudate).toHaveBeenCalledOnce();
     expect(onToggleSrf).toHaveBeenCalledOnce();
     expect(onTogglePed).toHaveBeenCalledOnce();
+  });
+
+  it('handles set-all-pathologies-to-zero hotkey from config', () => {
+    const onSetAllPathologiesZero = vi.fn();
+
+    renderHook(() =>
+      useKeyboardNav({
+        onNext: vi.fn(),
+        onPrev: vi.fn(),
+        onLabelHealthy: vi.fn(),
+        onLabelUnhealthy: vi.fn(),
+        onSetAllPathologiesZero,
+        hotkeys: {
+          nextFrame: 'ArrowRight',
+          prevFrame: 'ArrowLeft',
+          labelHealthy: 'a',
+          labelUnhealthy: 's',
+          toggleCyst: '1',
+          toggleHardExudate: '2',
+          toggleSrf: '3',
+          togglePed: '4',
+          setAllPathologiesZero: 'q',
+        },
+      })
+    );
+
+    fireKey('0');
+    expect(onSetAllPathologiesZero).not.toHaveBeenCalled();
+
+    fireKey('q');
+    expect(onSetAllPathologiesZero).toHaveBeenCalledOnce();
   });
 });

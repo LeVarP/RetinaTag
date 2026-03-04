@@ -267,6 +267,7 @@ class UserSettingsResponse(BaseModel):
     hotkey_hard_exudate: str
     hotkey_srf: str
     hotkey_ped: str
+    hotkey_set_all_pathologies_zero: str
     hotkey_next: str
     hotkey_prev: str
 
@@ -283,5 +284,6 @@ class UserSettingsUpdate(BaseModel):
     hotkey_hard_exudate: Optional[str] = Field(None, max_length=20)
     hotkey_srf: Optional[str] = Field(None, max_length=20)
     hotkey_ped: Optional[str] = Field(None, max_length=20)
+    hotkey_set_all_pathologies_zero: Optional[str] = Field(None, max_length=20)
     hotkey_next: Optional[str] = Field(None, max_length=20)
     hotkey_prev: Optional[str] = Field(None, max_length=20)

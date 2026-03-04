@@ -15,6 +15,7 @@ async def test_get_settings_default(auth_client):
     assert data["hotkey_hard_exudate"] == "2"
     assert data["hotkey_srf"] == "3"
     assert data["hotkey_ped"] == "4"
+    assert data["hotkey_set_all_pathologies_zero"] == "0"
     assert data["hotkey_next"] == "ArrowRight"
     assert data["hotkey_prev"] == "ArrowLeft"
 

@@ -12,6 +12,8 @@ All code was generated automatically using [Claude Code](https://claude.ai/claud
 
 See **[setup/SETUP.md](setup/SETUP.md)** for step-by-step deployment instructions.
 
+For development workflow and stage/prod environments, see **[CONTRIBUTING.md](CONTRIBUTING.md)**.
+
 ## Features
 
 - **Keyboard-First Interface**: Navigate and label using only Arrow keys + A/S hotkeys (no mouse required)

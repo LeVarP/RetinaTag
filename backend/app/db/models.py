@@ -151,6 +151,9 @@ class UserSettings(Base):
     hotkey_hard_exudate: Mapped[str] = mapped_column(String, default="2", nullable=False)
     hotkey_srf: Mapped[str] = mapped_column(String, default="3", nullable=False)
     hotkey_ped: Mapped[str] = mapped_column(String, default="4", nullable=False)
+    hotkey_set_all_pathologies_zero: Mapped[str] = mapped_column(
+        String, default="0", nullable=False
+    )
     hotkey_next: Mapped[str] = mapped_column(String, default="ArrowRight", nullable=False)
     hotkey_prev: Mapped[str] = mapped_column(String, default="ArrowLeft", nullable=False)
     updated_at: Mapped[datetime] = mapped_column(

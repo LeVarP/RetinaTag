@@ -29,6 +29,7 @@ interface LabelingControlsProps {
   hotkeyHardExudate?: string;
   hotkeySrf?: string;
   hotkeyPed?: string;
+  hotkeySetAllPathologiesZero?: string;
 }
 
 function LabelingControls({
@@ -54,6 +55,7 @@ function LabelingControls({
   hotkeyHardExudate = '2',
   hotkeySrf = '3',
   hotkeyPed = '4',
+  hotkeySetAllPathologiesZero = '0',
 }: LabelingControlsProps) {
   const isHealthy = currentLabel === Label.Healthy;
   const isUnhealthy = currentLabel === Label.Unhealthy;
@@ -154,7 +156,8 @@ function LabelingControls({
             disabled={isLoading}
             aria-label="Set all pathology markers to 0"
           >
-            Set all pathologies = 0
+            <span>Set all pathologies = 0</span>
+            <kbd className={styles.hotkey}>{hotkeySetAllPathologiesZero.toUpperCase()}</kbd>
           </button>
         </div>
       </div>

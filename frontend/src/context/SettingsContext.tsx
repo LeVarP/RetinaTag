@@ -11,6 +11,7 @@ const DEFAULT_SETTINGS: UserSettings = {
   hotkey_hard_exudate: '2',
   hotkey_srf: '3',
   hotkey_ped: '4',
+  hotkey_set_all_pathologies_zero: '0',
   hotkey_next: 'ArrowRight',
   hotkey_prev: 'ArrowLeft',
 };
