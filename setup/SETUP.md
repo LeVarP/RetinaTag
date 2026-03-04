@@ -2,109 +2,110 @@
 
 ## Prerequisites
 
-- Python 3
-- Docker + Docker Compose v2 (`docker compose`)
+- Docker Engine + Docker Compose v2 (`docker compose`)
+- Python 3 (needed only if you run `setup/create_db.py` manually)
 
-## 1) Create Database
-
-```bash
-python setup/create_db.py
-```
-
-By default, this creates `data/database/oct_labeler.db` and seeds it from:
-- `backend/app/db/Overview info_all_sheets - Overview info_all_sheets.csv`
-
-Notes:
-- `bscan_index` is normalized to **0-based**.
-- Duplicate hard exudate columns in CSV are merged (`OR`).
-- `healthy` is tri-state (`1/0/null`), `is_labeled` is marker-based.
-
-Useful options:
-
-```bash
-# Create DB without CSV seed
-python setup/create_db.py --no-seed
-
-# Custom DB file
-python setup/create_db.py --output /path/to/oct_labeler.db
-
-# Custom CSV path
-python setup/create_db.py --csv /path/to/data.csv
-```
-
-## 2) Configure Environment
+## 1) Environment
 
 ```bash
 cp setup/.env.example .env
 ```
 
-Required in `.env`:
-
+Set required values in `.env`:
 - `JWT_SECRET_KEY` (generate: `openssl rand -hex 32`)
-- `OCT_DATA_PATH` (absolute host path to images)
+- `OCT_DATA_PATH` (absolute host path with OCT images)
 
-Example `OCT_DATA_PATH`:
-- `/home/user/datasets/oct_images`
+Example:
+- `OCT_DATA_PATH=/home/user/datasets/oct_images`
 
-Inside container this is mounted to `/mnt/oct-data`.
+This path is mounted into backend container as `/mnt/oct-data` (read-only).
 
-## 3) Start
+## 2) Optional: Pre-create Database
+
+You can pre-create and seed DB locally:
+
+```bash
+python setup/create_db.py
+```
+
+Defaults:
+- output DB: `data/database/oct_labeler.db`
+- seed CSV: `backend/app/db/Overview info_all_sheets - Overview info_all_sheets.csv`
+
+Seed behavior:
+- merges duplicate hard exudate columns (`Hard exudate` + `Hard Exudate`) using logical OR
+- keeps/normalizes B-scan indexes to 0-based where needed
+- derives tri-state `healthy` and marker-based `is_labeled`
+
+Useful options:
+
+```bash
+python setup/create_db.py --no-seed
+python setup/create_db.py --output /path/to/oct_labeler.db
+python setup/create_db.py --csv /path/to/file.csv
+```
+
+If you skip this step, backend will still initialize DB tables on first start and seed from default CSV if DB is empty.
+
+## 3) Start Stack
 
 ```bash
 docker compose up --build -d
 ```
 
-Open:
-- Frontend: http://localhost
+Open app:
+- `http://localhost`
 
-LAN access:
-- Open `http://<HOST_LAN_IP>/` from any device in your local network.
-- Find host LAN IP on Linux: `hostname -I` or `ip -4 addr`.
-
-External access:
-- Open `http://<HOST_PUBLIC_IP>/` if your network/firewall/router allows inbound TCP `80` to this host.
-
-Login:
-- `admin` / `admin` (auto-created if no users exist)
+Default login (first start):
+- `admin` / `admin`
 
 ## 4) Verify
 
 ```bash
 docker compose ps
-# frontend health (from host):
 curl -I http://localhost/
-
-# backend health (internal, because backend port is not exposed):
 docker compose exec -T backend python -c "import urllib.request; print(urllib.request.urlopen('http://localhost:8000/health').read().decode())"
 ```
 
-## Network Access
+## 5) Access Model
 
-This setup is configured so that:
-- frontend is exposed on port `80`
-- backend is **not** exposed to host/network directly
-- nginx does not apply source-IP restrictions by default
+Current docker config:
+- frontend is exposed on host port `80`
+- backend is internal-only (not published directly)
+- nginx does not enforce source-IP ACL by default
 
-If you need to limit access, enforce it at firewall/router level or re-add nginx ACL rules.
+So access depends on host/router/firewall rules:
+- LAN access: `http://<HOST_LAN_IP>/`
+- External access: `http://<HOST_PUBLIC_IP>/` only if inbound `80/tcp` is allowed and routed
 
-## 5) Stop
+To restrict access, configure host firewall/router ACLs (or add nginx IP rules).
+
+## 6) Stop
 
 ```bash
 docker compose down
 ```
 
-## Schema Highlights
+## Data Model Highlights
 
 ### `bscans`
 
 - `scan_id`, `bscan_index` (0-based), `bscan_key`, `path`
-- `cyst`, `hard_exudate`, `srf`, `ped`
-- `healthy` (1/0/null)
-- `is_labeled`, `label`, `updated_at`
+- markers: `cyst`, `hard_exudate`, `srf`, `ped`
+- health: `healthy` (`1/0/null`)
+- status: `is_labeled`, legacy `label`, `updated_at`
+
+Labeled logic:
+- labeled if any of `healthy/cyst/hard_exudate/srf/ped` is `0` or `1`
+- unlabeled only if all these fields are `null`
 
 ### `user_settings`
 
-- `auto_advance`
+- `auto_advance` (stored legacy field)
 - `hotkey_healthy`, `hotkey_unhealthy`
 - `hotkey_cyst`, `hotkey_hard_exudate`, `hotkey_srf`, `hotkey_ped`
+- `hotkey_set_all_pathologies_zero`
 - `hotkey_next`, `hotkey_prev`
+
+Note:
+- On backend startup, lightweight migration adds missing `user_settings` columns automatically (including `hotkey_set_all_pathologies_zero`).

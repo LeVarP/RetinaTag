@@ -2,37 +2,42 @@
 
 FastAPI backend for OCT B-scan labeling.
 
-## Quick Start
+## Run Locally
+
+From repository root:
 
 ```bash
-python -m venv venv
-source venv/bin/activate  # Windows: venv\\Scripts\\activate
+cd backend
+python -m venv .venv
+source .venv/bin/activate
 pip install -r requirements.txt
 uvicorn app.main:app --reload
 ```
 
-API docs: http://localhost:8000/docs
+API docs: `http://localhost:8000/docs`
 
-Default admin: `admin` / `admin` (seeded automatically if DB has no users).
+Notes:
+- Default admin (`admin/admin`) is created automatically if users table is empty.
+- In Docker deployment, backend is internal-only (not published to host); requests go through frontend nginx at `/api/v1/...`.
 
-If you run via the project `docker compose` stack, backend port is intentionally not published to the network. API is reached through frontend nginx proxy (`/api/...`).
+## Labeling Logic
 
-## Main Concepts
-
-- `bscan_index` is **0-based**.
-- Health is tri-state via `healthy`:
+- `bscan_index` is normalized to **0-based**.
+- `healthy` is tri-state:
   - `1` = healthy
   - `0` = not healthy
   - `null` = not necessarily healthy
-- `is_labeled` is marker-based:
-  - labeled if at least one of `healthy/cyst/hard_exudate/srf/ped` is `0` or `1`
+- `is_labeled` is computed by marker presence:
+  - labeled if any of `healthy/cyst/hard_exudate/srf/ped` is `0` or `1`
   - unlabeled only if all these fields are `null`
-- Pathology rule:
-  - if any pathology marker becomes `1`, backend auto-sets `healthy=0`.
+- Pathology consistency rule:
+  - if any pathology marker is set to `1`, backend sets `healthy=0`
+- `DELETE /bscans/{id}/label` clears all label fields:
+  - `healthy/cyst/hard_exudate/srf/ped -> null`
+  - `is_labeled -> false`
+  - `label -> 0`
 
-## API Endpoints
-
-Base prefix: `/api/v1`
+## API (Prefix: `/api/v1`)
 
 ### Auth (`/auth`)
 
@@ -49,9 +54,9 @@ Base prefix: `/api/v1`
 |---|---|---|---|
 | GET | `/scans` | - | List scans with embedded stats |
 | GET | `/scans/{scan_id}/stats` | - | Per-scan statistics |
-| GET | `/scans/{scan_id}/bscans` | - | List all B-scans for a scan |
-| GET | `/scans/{scan_id}/bscans/{index}` | - | B-scan metadata by index |
-| GET | `/scans/{scan_id}/bscans/{index}/preview` | - | Render preview image |
+| GET | `/scans/{scan_id}/bscans` | - | List all B-scans in scan |
+| GET | `/scans/{scan_id}/bscans/{index}` | - | B-scan metadata by 0-based index |
+| GET | `/scans/{scan_id}/bscans/{index}/preview` | - | Render cached preview |
 
 ### B-scans (`/bscans`)
 
@@ -60,8 +65,8 @@ Base prefix: `/api/v1`
 | GET | `/bscans/{bscan_id}` | - | Get B-scan by DB id |
 | POST | `/bscans/{bscan_id}/health` | Required | Set `healthy` to `0` or `1` |
 | POST | `/bscans/{bscan_id}/pathology` | Required | Update pathology markers |
-| POST | `/bscans/{bscan_id}/label` | Required | Legacy label API (1/2), mapped to health |
-| DELETE | `/bscans/{bscan_id}/label` | Required | Clear health (`healthy=null`) |
+| POST | `/bscans/{bscan_id}/label` | Required | Legacy label API (`1/2`), mapped to `healthy` |
+| DELETE | `/bscans/{bscan_id}/label` | Required | Clear all label-related fields |
 
 ### Stats (`/stats`)
 
@@ -78,51 +83,29 @@ CSV export columns:
 
 | Method | Path | Auth | Description |
 |---|---|---|---|
-| GET | `/users/me/settings` | Required | Get settings |
-| PUT | `/users/me/settings` | Required | Update settings |
+| GET | `/users/me/settings` | Required | Get user hotkey settings |
+| PUT | `/users/me/settings` | Required | Update user hotkey settings |
 | POST | `/users/me/password` | Required | Change password |
 
-Settings fields:
-- `auto_advance`
+Settings payload fields:
+- `auto_advance` (legacy stored field; frontend flow is currently manual navigation)
 - `hotkey_healthy`, `hotkey_unhealthy`
 - `hotkey_cyst`, `hotkey_hard_exudate`, `hotkey_srf`, `hotkey_ped`
+- `hotkey_set_all_pathologies_zero`
 - `hotkey_next`, `hotkey_prev`
-
-## Database Model Summary
-
-### `scans`
-- `scan_id` (PK)
-- `created_at`, `updated_at`
-
-### `bscans`
-- `id` (PK)
-- `scan_id` (FK), `bscan_index` (0-based), `bscan_key`, `path`
-- `cyst`, `hard_exudate`, `srf`, `ped`
-- `healthy` (nullable tri-state)
-- `is_labeled`, `label`, `updated_at`
-
-### `users`
-- `id`, `username`, `hashed_password`, `is_active`, `is_admin`, timestamps
-
-### `user_settings`
-- `user_id` (unique FK)
-- `auto_advance`
-- health hotkeys + pathology hotkeys + navigation hotkeys
 
 ## Runtime Migrations
 
-On startup, lightweight SQLite migrations are applied automatically:
-- add missing columns
-- merge duplicate hard exudate sources from CSV mapping
-- normalize `bscan_index` to 0-based where needed
-- derive/recompute `healthy`, `label`, `is_labeled`
-- add new user pathology hotkey columns with defaults
+On startup, the backend applies lightweight SQLite migrations:
+- adds missing columns in `bscans` and `user_settings`
+- merges duplicate hard exudate sources (`hard_exudate` + `hard_exudate_alt`) into `hard_exudate`
+- backfills `healthy`, `label`, `is_labeled` using current logic
+- normalizes B-scan indexes from 1-based to 0-based where needed
+- backfills hotkeys defaults, including `hotkey_set_all_pathologies_zero='0'`
 
 ## Configuration
 
-Environment variables are loaded from `.env` (see `app/config.py`).
-
-Common vars:
+Environment variables are defined in `.env` (see `backend/app/config.py`):
 - `DATABASE_URL`
 - `DATA_DIR`, `CACHE_DIR`
 - `PREVIEW_FORMAT`, `PREVIEW_QUALITY`
@@ -132,5 +115,5 @@ Common vars:
 ## Tests
 
 ```bash
-pytest
+pytest backend/tests
 ```

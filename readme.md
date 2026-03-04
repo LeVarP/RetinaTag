@@ -1,68 +1,66 @@
 # RetinaTag
 
-A web application for rapid labeling of OCT (Optical Coherence Tomography) B-scans. Designed for medical researchers who need to quickly classify hundreds of B-scans per tomogram as either Healthy or Unhealthy using keyboard-only navigation.
+RetinaTag is a web app for fast labeling of OCT B-scans with keyboard-friendly controls, pathology markers, and per-scan progress tracking.
 
-All code was generated automatically using [Claude Code](https://claude.ai/claude-code) (Anthropic).
+## Quick Start
 
-<img width="45%"  alt="Main page" src="https://github.com/user-attachments/assets/5f5ccb2b-7fd5-4b9e-b622-fa1540e77e37" />
-<img width="48%"  alt="Statistics" src="https://github.com/user-attachments/assets/554c0a7f-04c5-4ea5-bbca-c7f873257936" />
+Use the full setup guide: **[setup/SETUP.md](setup/SETUP.md)**.
 
+Minimal Docker start:
 
-## Getting Started
-
-See **[setup/SETUP.md](setup/SETUP.md)** for step-by-step deployment instructions.
-
-For development workflow and stage/prod environments, see **[CONTRIBUTING.md](CONTRIBUTING.md)**.
-
-## Features
-
-- **Keyboard-First Interface**: Navigate and label using only Arrow keys + A/S hotkeys (no mouse required)
-- **Smart Preview Caching**: Automatic 16-bit → 8-bit image conversion with disk caching
-- **Intelligent Prefetching**: Seamless navigation with automatic prefetch of next K frames
-- **Progress Tracking**: Real-time statistics showing labeling progress per scan and globally
-- **Two Navigation Modes**: Sequential (all frames) or Unlabeled Only (skip labeled frames)
-- **Auto-Advance**: Automatically moves to next frame after labeling
-- **JWT Authentication**: User accounts with per-user customizable hotkeys
-- **Docker Deployment**: Single `docker-compose up` for local, VM, or LAN access
-
-## Technology Stack
-
-- **Backend**: FastAPI + SQLAlchemy + SQLite (async) + Pillow/NumPy
-- **Frontend**: React 18 + TypeScript + Vite + TanStack Query
-- **Deployment**: Docker + Docker Compose + nginx
-- **Testing**: pytest (backend), Vitest + Playwright (frontend)
-
-## Project Structure
-
+```bash
+cp setup/.env.example .env
+# set OCT_DATA_PATH and JWT_SECRET_KEY in .env
+docker compose up --build -d
 ```
+
+Open: `http://localhost`  
+Default login (first run): `admin` / `admin`
+
+## What It Does
+
+- Labels each B-scan with tri-state health:
+  - `healthy=1` -> Healthy
+  - `healthy=0` -> Not healthy
+  - `healthy=null` -> Not necessarily healthy
+- Tracks pathology markers per B-scan:
+  - `Cyst`, `Hard exudate`, `SRF`, `PED`
+- Uses marker-based labeled state:
+  - labeled if any of `healthy/cyst/hard_exudate/srf/ped` is `0` or `1`
+  - unlabeled only if all those fields are `null`
+- Enforces pathology rule:
+  - any pathology marker `=1` automatically sets `healthy=0`
+- Supports quick actions in labeling UI:
+  - `Unlabel` (clear health + all pathology markers to `null`)
+  - `Set all pathologies = 0` (without setting Healthy=1)
+- Supports configurable user hotkeys in profile, including default `0` for `Set all pathologies = 0`
+- Provides scan dashboard with:
+  - sortable columns
+  - column visibility toggles
+  - sticky `Progress` and `Action` columns
+  - expandable B-scan details table
+  - CSV export (`/stats/export/bscans.csv`, no `path` column)
+
+## Stack
+
+- Backend: FastAPI, SQLAlchemy (async), SQLite, Pillow/NumPy
+- Frontend: React 18, TypeScript, Vite, TanStack Query
+- Deployment: Docker Compose + nginx
+
+## Repository Map
+
+```text
 RetinaTag/
-├── setup/             # Setup instructions, DB script, env template
-├── backend/           # FastAPI application
-│   ├── app/
-│   │   ├── api/v1/    # REST endpoints (auth, scans, bscans, stats, users)
-│   │   ├── db/        # Models, schemas, database config
-│   │   └── services/  # Business logic layer
-│   └── tests/         # pytest test suite
-├── frontend/          # React + TypeScript application
-│   ├── src/
-│   │   ├── pages/     # ScanList, Labeling, Login, Profile
-│   │   ├── components/# BScanViewer, NavigationControls, etc.
-│   │   ├── hooks/     # useKeyboardNav, useLabeling, usePrefetch
-│   │   ├── context/   # AuthContext, SettingsContext
-│   │   └── services/  # API client
-│   └── tests/         # Vitest + Playwright tests
-├── docker/            # Dockerfiles + nginx config
-└── data/              # Runtime data (git-ignored)
-    ├── cache/         # Generated 8-bit previews
-    └── database/      # SQLite database
+├── setup/      # setup docs, env template, DB creation script
+├── backend/    # FastAPI app + tests
+├── frontend/   # React app + tests
+├── docker/     # Dockerfiles + nginx config
+└── data/       # runtime DB/cache (gitignored)
 ```
 
-## API Documentation
+## More Docs
 
-Full interactive API docs available at `/docs` when the backend is running.
-
-See [backend/README.md](backend/README.md) for endpoint reference.
-
-## License
-
-MIT
+- Backend details and API: [backend/README.md](backend/README.md)
+- Frontend details and hotkeys: [frontend/README.md](frontend/README.md)
+- Setup and deployment: [setup/SETUP.md](setup/SETUP.md)
+- Development workflow: [CONTRIBUTING.md](CONTRIBUTING.md)

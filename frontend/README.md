@@ -1,65 +1,74 @@
 # RetinaTag Frontend
 
-React + TypeScript client for OCT B-scan labeling.
+React + TypeScript client for RetinaTag.
 
-## Quick Start
+## Local Run
 
 ```bash
+cd frontend
 npm install
 npm run dev
 ```
 
-App URL: http://localhost:5173
+Vite URL: `http://localhost:5173`
 
-## Current Features
+In Docker deployment, the app is served by nginx on `http://localhost` (port 80).
 
-- Keyboard-first labeling and navigation
-- Tri-state health display:
-  - `Healthy`
-  - `Not healthy`
-  - `Not necessarily healthy`
-- Pathology markers (`Cyst`, `Hard exudate`, `SRF`, `PED`)
-- Configurable hotkeys (profile page)
-- Labeling page button: `Configure hotkeys`
-- Scan table with:
-  - column visibility toggles
-  - horizontal scroll for wide tables
+## UI Capabilities
+
+- Scan dashboard:
+  - sortable metrics
+  - selectable visible columns
   - sticky `Progress` and `Action` columns
-  - expandable `Details` with per-B-scan rows
-- CSV export button (`Export CSV`) for per-B-scan dataset
+  - horizontal scrolling for wide tables
+  - expandable `Details` with full per-B-scan rows
+  - `Export CSV` button for per-B-scan export
+- Labeling view:
+  - health status actions (`Healthy`, `Not healthy`)
+  - pathology toggles (`Cyst`, `Hard exudate`, `SRF`, `PED`)
+  - `Unlabel` action (clear health and pathology fields)
+  - `Set all pathologies = 0` action (without auto-marking healthy)
+  - `⚙️ Configure hotkeys` shortcut button to `/profile#hotkeys`
+- Health semantics in UI:
+  - `Healthy` (`healthy=1`)
+  - `Not healthy` (`healthy=0`)
+  - `Not necessarily healthy` (`healthy=null`)
+  - `Unlabeled` only when all marker fields are `null`
+- Pathology-positive values are emphasized in tables (`>0` -> bold style).
+- Cookie consent banner is shown once; app uses auth cookies only (no analytics tracking cookies).
 
-## Keyboard Defaults
+## Default Hotkeys
 
 - Navigation:
-  - `ArrowLeft` previous frame
-  - `ArrowRight` next frame
-- Health labels:
-  - `A` healthy
-  - `S` not healthy
+  - `ArrowLeft` -> previous B-scan
+  - `ArrowRight` -> next B-scan
+- Health:
+  - `A` -> Healthy
+  - `S` -> Not healthy
 - Pathology toggles:
-  - `1` cyst
-  - `2` hard exudate
-  - `3` SRF
-  - `4` PED
+  - `1` -> Cyst
+  - `2` -> Hard exudate
+  - `3` -> SRF
+  - `4` -> PED
+- Bulk pathology action:
+  - `0` -> Set all pathologies to `0`
 
-All keys are editable in `/profile`.
+All of these are configurable in `/profile`.
 
-## API Usage
+## API Layer
 
-`src/services/api.ts` wraps backend API.
+`src/services/api.ts` wraps backend endpoints.
 
 Main calls:
-- `api.getScans()`
-- `api.getScanStats(scanId)`
-- `api.getBScan(scanId, index)`
-- `api.getScanBScans(scanId)`
-- `api.updateHealth(bscanId, { healthy })`
-- `api.updatePathology(bscanId, patch)`
-- `api.downloadBScansCsv()`
+- `getScans`, `getGlobalStats`, `getScanStats`
+- `getBScan`, `getScanBScans`
+- `updateHealth`, `updatePathology`, `clearLabel`
+- `downloadBScansCsv`
+- auth and user settings APIs
 
-## Project Structure
+## Structure
 
-```
+```text
 frontend/src/
 ├── components/
 ├── context/
@@ -70,7 +79,7 @@ frontend/src/
 └── types/
 ```
 
-## Scripts
+## Commands
 
 ```bash
 npm run dev
@@ -82,17 +91,8 @@ npm test
 
 ## Environment
 
-Optional `.env`:
+Optional `frontend/.env`:
 
 ```env
 VITE_API_BASE_URL=/api/v1
 ```
-
-## Deployment Note
-
-In the provided Docker stack:
-- frontend is published on port `80`
-- backend is internal-only (not directly exposed)
-- nginx does not enforce source-IP ACL by default
-
-This means frontend can be reached from LAN and external networks if host routing/firewall/NAT allows inbound `80/tcp`.
