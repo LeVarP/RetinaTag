@@ -15,6 +15,6 @@ services:
   frontend:
     container_name: retinatag-stage-frontend
     ports:
-      - "8080:80"
+      - "8081:80"
     restart: unless-stopped
 
