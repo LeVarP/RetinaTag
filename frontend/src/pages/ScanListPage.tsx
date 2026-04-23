@@ -6,6 +6,7 @@ import { Fragment, useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { api } from '@/services/api';
+import { useDatabase } from '@/context/DatabaseContext';
 import ProgressBar from '@/components/ProgressBar';
 import styles from './ScanListPage.module.css';
 
@@ -64,6 +65,14 @@ const DEFAULT_VISIBLE_COLUMNS: Record<ToggleColumnKey, boolean> = {
   ped_positive: true,
 };
 
+const SIMPLE_HIDDEN_COLUMNS = new Set<ToggleColumnKey>([
+  'not_necessary_healthy',
+  'cyst_positive',
+  'hard_exudate_positive',
+  'srf_positive',
+  'ped_positive',
+]);
+
 function markerValue(value: number | null): string {
   if (value === 1) return '1';
   if (value === 0) return '0';
@@ -75,14 +84,17 @@ function markerClass(value: number | null): string {
   return value >= 1 ? styles.markerPositive : '';
 }
 
-function healthState(healthy: number | null, isLabeled: boolean): string {
+function healthState(healthy: number | null, isLabeled: boolean, mode: 'original' | 'simple' = 'original'): string {
   if (healthy === 1) return 'Healthy';
+  if (mode === 'simple') {
+    return healthy === -1 ? 'Not healthy' : 'Unlabeled';
+  }
   if (healthy === 0) return 'Not healthy';
   if (isLabeled) return 'Not necessarily healthy';
   return 'Unlabeled';
 }
 
-function ScanBScansTable({ scanId }: { scanId: string }) {
+function ScanBScansTable({ scanId, isSimpleMode }: { scanId: string; isSimpleMode: boolean }) {
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ['scanBScans', scanId],
     queryFn: () => api.getScanBScans(scanId),
@@ -111,10 +123,10 @@ function ScanBScansTable({ scanId }: { scanId: string }) {
           <tr>
             <th>Index</th>
             <th>Health</th>
-            <th>Cyst</th>
-            <th>Hard exudate</th>
-            <th>SRF</th>
-            <th>PED</th>
+            {!isSimpleMode && <th>Cyst</th>}
+            {!isSimpleMode && <th>Hard exudate</th>}
+            {!isSimpleMode && <th>SRF</th>}
+            {!isSimpleMode && <th>PED</th>}
             <th>Labeled</th>
           </tr>
         </thead>
@@ -122,11 +134,11 @@ function ScanBScansTable({ scanId }: { scanId: string }) {
           {data.map((item) => (
             <tr key={item.id}>
               <td>{item.bscan_index}</td>
-              <td>{healthState(item.healthy, item.is_labeled)}</td>
-              <td className={markerClass(item.cyst)}>{markerValue(item.cyst)}</td>
-              <td className={markerClass(item.hard_exudate)}>{markerValue(item.hard_exudate)}</td>
-              <td className={markerClass(item.srf)}>{markerValue(item.srf)}</td>
-              <td className={markerClass(item.ped)}>{markerValue(item.ped)}</td>
+              <td>{healthState(item.healthy, item.is_labeled, isSimpleMode ? 'simple' : 'original')}</td>
+              {!isSimpleMode && <td className={markerClass(item.cyst)}>{markerValue(item.cyst)}</td>}
+              {!isSimpleMode && <td className={markerClass(item.hard_exudate)}>{markerValue(item.hard_exudate)}</td>}
+              {!isSimpleMode && <td className={markerClass(item.srf)}>{markerValue(item.srf)}</td>}
+              {!isSimpleMode && <td className={markerClass(item.ped)}>{markerValue(item.ped)}</td>}
               <td>{item.is_labeled ? 'Yes' : 'No'}</td>
             </tr>
           ))}
@@ -137,6 +149,9 @@ function ScanBScansTable({ scanId }: { scanId: string }) {
 }
 
 function ScanListPage() {
+  const { activeDatabase } = useDatabase();
+  const isSimpleMode = activeDatabase === 'simple';
+
   const [sortKey, setSortKey] = useState<SortKey>('scan_id');
   const [sortDir, setSortDir] = useState<SortDir>('asc');
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
@@ -160,9 +175,14 @@ function ScanListPage() {
     queryFn: api.getGlobalStats,
   });
 
+  const effectiveColumnConfig = useMemo(
+    () => isSimpleMode ? COLUMN_CONFIG.filter((col) => !SIMPLE_HIDDEN_COLUMNS.has(col.key)) : COLUMN_CONFIG,
+    [isSimpleMode]
+  );
+
   const visibleColumnConfigs = useMemo(
-    () => COLUMN_CONFIG.filter((col) => visibleColumns[col.key]),
-    [visibleColumns]
+    () => effectiveColumnConfig.filter((col) => visibleColumns[col.key]),
+    [effectiveColumnConfig, visibleColumns]
   );
 
   const sortedScans = useMemo(() => {
@@ -382,11 +402,15 @@ function ScanListPage() {
             <span className={styles.statNum}>{globalStats.total_unhealthy}</span>
             <span className={styles.statLbl}>Not healthy</span>
           </div>
-          <div className={styles.statDivider} />
-          <div className={styles.statItem}>
-            <span className={styles.statNum}>{globalStats.total_not_necessary_healthy}</span>
-            <span className={styles.statLbl}>Not necessarily healthy</span>
-          </div>
+          {!isSimpleMode && (
+            <>
+              <div className={styles.statDivider} />
+              <div className={styles.statItem}>
+                <span className={styles.statNum}>{globalStats.total_not_necessary_healthy}</span>
+                <span className={styles.statLbl}>Not necessarily healthy</span>
+              </div>
+            </>
+          )}
           <div className={styles.statDivider} />
           <div className={styles.statProgress}>
             <ProgressBar percentage={globalStats.percent_complete} />
@@ -407,7 +431,7 @@ function ScanListPage() {
           </button>
         </div>
         <div className={styles.columnPickerGrid}>
-          {COLUMN_CONFIG.map((column) => (
+          {effectiveColumnConfig.map((column) => (
             <label key={column.key} className={styles.columnOption}>
               <input
                 type="checkbox"
@@ -474,7 +498,7 @@ function ScanListPage() {
                         <div className={styles.detailsPanel}>
                           <div className={styles.detailsBlock}>
                             <h4>B-scan Details</h4>
-                            <ScanBScansTable scanId={scan.scan_id} />
+                            <ScanBScansTable scanId={scan.scan_id} isSimpleMode={isSimpleMode} />
                           </div>
                         </div>
                       </td>

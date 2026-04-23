@@ -86,6 +86,8 @@ function ProfilePage() {
       hotkey_set_all_pathologies_zero: DEFAULT_HOTKEYS.setAllPathologiesZero,
       hotkey_next: DEFAULT_HOTKEYS.nextFrame,
       hotkey_prev: DEFAULT_HOTKEYS.prevFrame,
+      hotkey_next_unlabeled: DEFAULT_HOTKEYS.nextUnlabeled,
+      hotkey_prev_unlabeled: DEFAULT_HOTKEYS.prevUnlabeled,
     });
   };
 
@@ -200,6 +202,16 @@ function ProfilePage() {
             onChange={(key) =>
               setLocalSettings((s) => ({ ...s, hotkey_set_all_pathologies_zero: key }))
             }
+          />
+          <HotkeyInput
+            label="Next unlabeled (Simple DB)"
+            value={localSettings.hotkey_next_unlabeled}
+            onChange={(key) => setLocalSettings((s) => ({ ...s, hotkey_next_unlabeled: key }))}
+          />
+          <HotkeyInput
+            label="Prev unlabeled (Simple DB)"
+            value={localSettings.hotkey_prev_unlabeled}
+            onChange={(key) => setLocalSettings((s) => ({ ...s, hotkey_prev_unlabeled: key }))}
           />
         </div>
 

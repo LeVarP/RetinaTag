@@ -296,6 +296,8 @@ def _ensure_user_settings_columns(sync_conn) -> None:
         "hotkey_srf": "TEXT NOT NULL DEFAULT '3'",
         "hotkey_ped": "TEXT NOT NULL DEFAULT '4'",
         "hotkey_set_all_pathologies_zero": "TEXT NOT NULL DEFAULT '0'",
+        "hotkey_next_unlabeled": "TEXT NOT NULL DEFAULT 'n'",
+        "hotkey_prev_unlabeled": "TEXT NOT NULL DEFAULT 'b'",
     }
 
     for column_name, column_type in required_columns.items():
@@ -314,7 +316,9 @@ def _ensure_user_settings_columns(sync_conn) -> None:
                 hotkey_hard_exudate = COALESCE(NULLIF(hotkey_hard_exudate, ''), '2'),
                 hotkey_srf = COALESCE(NULLIF(hotkey_srf, ''), '3'),
                 hotkey_ped = COALESCE(NULLIF(hotkey_ped, ''), '4'),
-                hotkey_set_all_pathologies_zero = COALESCE(NULLIF(hotkey_set_all_pathologies_zero, ''), '0')
+                hotkey_set_all_pathologies_zero = COALESCE(NULLIF(hotkey_set_all_pathologies_zero, ''), '0'),
+                hotkey_next_unlabeled = COALESCE(NULLIF(hotkey_next_unlabeled, ''), 'n'),
+                hotkey_prev_unlabeled = COALESCE(NULLIF(hotkey_prev_unlabeled, ''), 'b')
             """
         )
     )

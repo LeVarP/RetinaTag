@@ -40,6 +40,8 @@ function LabelingPage() {
     togglePed: settings.hotkey_ped,
     setAllPathologiesZero:
       settings.hotkey_set_all_pathologies_zero ?? DEFAULT_HOTKEYS.setAllPathologiesZero,
+    nextUnlabeled: settings.hotkey_next_unlabeled ?? DEFAULT_HOTKEYS.nextUnlabeled,
+    prevUnlabeled: settings.hotkey_prev_unlabeled ?? DEFAULT_HOTKEYS.prevUnlabeled,
   };
 
   // Fetch scan stats to get total B-scans
@@ -132,6 +134,18 @@ function LabelingPage() {
     }
   };
 
+  const handleNextUnlabeled = () => {
+    if (bscan?.next_unlabeled_index !== null && bscan?.next_unlabeled_index !== undefined) {
+      setCurrentIndex(bscan.next_unlabeled_index);
+    }
+  };
+
+  const handlePrevUnlabeled = () => {
+    if (bscan?.prev_unlabeled_index !== null && bscan?.prev_unlabeled_index !== undefined) {
+      setCurrentIndex(bscan.prev_unlabeled_index);
+    }
+  };
+
   // Keyboard navigation (pathology hotkeys disabled in simple mode)
   useKeyboardNav({
     onNext: handleNext,
@@ -143,6 +157,8 @@ function LabelingPage() {
     onToggleSrf: isSimpleMode ? undefined : toggleSrf,
     onTogglePed: isSimpleMode ? undefined : togglePed,
     onSetAllPathologiesZero: isSimpleMode ? undefined : setAllPathologiesZero,
+    onNextUnlabeled: isSimpleMode ? handleNextUnlabeled : undefined,
+    onPrevUnlabeled: isSimpleMode ? handlePrevUnlabeled : undefined,
     hotkeys,
     enabled: !!bscan && !isLabeling,
   });
@@ -209,6 +225,7 @@ function LabelingPage() {
             isLoading={isLabeling || isFetching}
             maxWidth={imageMaxWidth}
             onMaxWidthChange={setImageMaxWidth}
+            dbMode={activeDatabase}
           />
         </div>
 
@@ -221,6 +238,12 @@ function LabelingPage() {
             onPrev={handlePrev}
             onNext={handleNext}
             onGoTo={setCurrentIndex}
+            hasPrevUnlabeled={isSimpleMode ? bscan.prev_unlabeled_index !== null : undefined}
+            hasNextUnlabeled={isSimpleMode ? bscan.next_unlabeled_index !== null : undefined}
+            onPrevUnlabeled={isSimpleMode ? handlePrevUnlabeled : undefined}
+            onNextUnlabeled={isSimpleMode ? handleNextUnlabeled : undefined}
+            hotkeyPrevUnlabeled={isSimpleMode ? hotkeys.prevUnlabeled : undefined}
+            hotkeyNextUnlabeled={isSimpleMode ? hotkeys.nextUnlabeled : undefined}
           />
 
           <LabelingControls

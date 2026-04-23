@@ -14,6 +14,7 @@ interface BScanViewerProps {
   isLoading?: boolean;
   maxWidth: number;
   onMaxWidthChange: (width: number) => void;
+  dbMode?: 'original' | 'simple';
 }
 
 const MAGNIFIER_SIZE = 200;
@@ -30,6 +31,7 @@ function BScanViewer({
   isLoading = false,
   maxWidth,
   onMaxWidthChange,
+  dbMode = 'original',
 }: BScanViewerProps) {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [currentSrc, setCurrentSrc] = useState(previewUrl);
@@ -48,6 +50,11 @@ function BScanViewer({
   const getStatus = () => {
     if (healthy === 1) {
       return { text: 'Healthy', className: styles.labelHealthy };
+    }
+    if (dbMode === 'simple') {
+      return healthy === -1
+        ? { text: 'Not healthy', className: styles.labelUnhealthy }
+        : { text: 'Unlabeled', className: styles.labelNotNecessaryHealthy };
     }
     if (healthy === 0) {
       return { text: 'Not healthy', className: styles.labelUnhealthy };

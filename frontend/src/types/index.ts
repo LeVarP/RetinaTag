@@ -79,6 +79,7 @@ export interface BScan {
   prev_index: number | null;
   next_index: number | null;
   next_unlabeled_index: number | null;
+  prev_unlabeled_index: number | null;
 }
 
 export interface BScanListItem {
@@ -168,6 +169,8 @@ export interface KeyboardHotkeys {
   toggleSrf: string;
   togglePed: string;
   setAllPathologiesZero: string;
+  nextUnlabeled: string;
+  prevUnlabeled: string;
 }
 
 /**
@@ -183,6 +186,8 @@ export const DEFAULT_HOTKEYS: KeyboardHotkeys = {
   toggleSrf: '3',
   togglePed: '4',
   setAllPathologiesZero: '0',
+  nextUnlabeled: 'n',
+  prevUnlabeled: 'b',
 };
 
 // ===== AUTH TYPES =====
@@ -227,6 +232,8 @@ export interface UserSettings {
   hotkey_set_all_pathologies_zero: string;
   hotkey_next: string;
   hotkey_prev: string;
+  hotkey_next_unlabeled: string;
+  hotkey_prev_unlabeled: string;
 }
 
 export interface UserSettingsUpdate {
@@ -239,4 +246,6 @@ export interface UserSettingsUpdate {
   hotkey_set_all_pathologies_zero?: string;
   hotkey_next?: string;
   hotkey_prev?: string;
+  hotkey_next_unlabeled?: string;
+  hotkey_prev_unlabeled?: string;
 }

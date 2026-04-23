@@ -156,6 +156,8 @@ class UserSettings(Base):
     )
     hotkey_next: Mapped[str] = mapped_column(String, default="ArrowRight", nullable=False)
     hotkey_prev: Mapped[str] = mapped_column(String, default="ArrowLeft", nullable=False)
+    hotkey_next_unlabeled: Mapped[str] = mapped_column(String, default="n", nullable=False)
+    hotkey_prev_unlabeled: Mapped[str] = mapped_column(String, default="b", nullable=False)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False
     )

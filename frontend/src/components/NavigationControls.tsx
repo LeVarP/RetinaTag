@@ -13,6 +13,12 @@ interface NavigationControlsProps {
   onPrev: () => void;
   onNext: () => void;
   onGoTo: (index: number) => void;
+  hasPrevUnlabeled?: boolean;
+  hasNextUnlabeled?: boolean;
+  onPrevUnlabeled?: () => void;
+  onNextUnlabeled?: () => void;
+  hotkeyPrevUnlabeled?: string;
+  hotkeyNextUnlabeled?: string;
 }
 
 function NavigationControls({
@@ -23,6 +29,12 @@ function NavigationControls({
   onPrev,
   onNext,
   onGoTo,
+  hasPrevUnlabeled,
+  hasNextUnlabeled,
+  onPrevUnlabeled,
+  onNextUnlabeled,
+  hotkeyPrevUnlabeled,
+  hotkeyNextUnlabeled,
 }: NavigationControlsProps) {
   const maxIndex = Math.max(totalBScans - 1, 0);
   const [isEditing, setIsEditing] = useState(false);
@@ -98,6 +110,31 @@ function NavigationControls({
           <span className={styles.arrow}>→</span>
         </button>
       </div>
+
+      {onPrevUnlabeled !== undefined && onNextUnlabeled !== undefined && (
+        <div className={styles.unlabeledRow}>
+          <button
+            className={styles.unlabeledButton}
+            onClick={onPrevUnlabeled}
+            disabled={!hasPrevUnlabeled}
+            aria-label="Previous unlabeled B-scan"
+          >
+            <span className={styles.arrow}>←</span>
+            <span className={styles.buttonText}>Prev unlabeled</span>
+            {hotkeyPrevUnlabeled && <kbd>{hotkeyPrevUnlabeled}</kbd>}
+          </button>
+          <button
+            className={styles.unlabeledButton}
+            onClick={onNextUnlabeled}
+            disabled={!hasNextUnlabeled}
+            aria-label="Next unlabeled B-scan"
+          >
+            <span className={styles.buttonText}>Next unlabeled</span>
+            {hotkeyNextUnlabeled && <kbd>{hotkeyNextUnlabeled}</kbd>}
+            <span className={styles.arrow}>→</span>
+          </button>
+        </div>
+      )}
 
       <div className={styles.hint}>
         Use <kbd>←</kbd> <kbd>→</kbd> arrow keys to navigate

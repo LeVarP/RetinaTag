@@ -119,6 +119,35 @@
   border-color: var(--color-primary);
 }
 
+.unlabeledRow {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.unlabeledButton {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-xs) var(--spacing-md);
+  background-color: var(--color-surface);
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  border: 1.5px solid var(--color-warning);
+  border-radius: var(--radius-sm);
+  transition: background-color 0.2s, opacity 0.2s;
+}
+
+.unlabeledButton:hover:not(:disabled) {
+  background-color: #fff3e0;
+}
+
+.unlabeledButton:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 .hint {
   font-size: var(--font-size-sm);
   color: var(--color-text-secondary);

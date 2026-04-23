@@ -46,6 +46,7 @@ class BScanResponse(BScanBase):
     prev_index: Optional[int] = Field(None, description="Index of previous B-scan (null if first)")
     next_index: Optional[int] = Field(None, description="Index of next B-scan (null if last)")
     next_unlabeled_index: Optional[int] = Field(None, description="Index of next unlabeled B-scan")
+    prev_unlabeled_index: Optional[int] = Field(None, description="Index of previous unlabeled B-scan")
 
     class Config:
         from_attributes = True
@@ -270,6 +271,8 @@ class UserSettingsResponse(BaseModel):
     hotkey_set_all_pathologies_zero: str
     hotkey_next: str
     hotkey_prev: str
+    hotkey_next_unlabeled: str
+    hotkey_prev_unlabeled: str
 
     class Config:
         from_attributes = True
@@ -287,3 +290,5 @@ class UserSettingsUpdate(BaseModel):
     hotkey_set_all_pathologies_zero: Optional[str] = Field(None, max_length=20)
     hotkey_next: Optional[str] = Field(None, max_length=20)
     hotkey_prev: Optional[str] = Field(None, max_length=20)
+    hotkey_next_unlabeled: Optional[str] = Field(None, max_length=20)
+    hotkey_prev_unlabeled: Optional[str] = Field(None, max_length=20)

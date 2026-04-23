@@ -16,6 +16,8 @@ interface UseKeyboardNavProps {
   onToggleSrf?: () => void;
   onTogglePed?: () => void;
   onSetAllPathologiesZero?: () => void;
+  onNextUnlabeled?: () => void;
+  onPrevUnlabeled?: () => void;
   hotkeys?: KeyboardHotkeys;
   enabled?: boolean;
 }
@@ -33,6 +35,8 @@ export function useKeyboardNav({
   onToggleSrf,
   onTogglePed,
   onSetAllPathologiesZero,
+  onNextUnlabeled,
+  onPrevUnlabeled,
   hotkeys = DEFAULT_HOTKEYS,
   enabled = true,
 }: UseKeyboardNavProps) {
@@ -100,6 +104,18 @@ export function useKeyboardNav({
       ) {
         event.preventDefault();
         onSetAllPathologiesZero();
+      } else if (
+        (key === hotkeys.nextUnlabeled || key === hotkeys.nextUnlabeled.toUpperCase()) &&
+        onNextUnlabeled
+      ) {
+        event.preventDefault();
+        onNextUnlabeled();
+      } else if (
+        (key === hotkeys.prevUnlabeled || key === hotkeys.prevUnlabeled.toUpperCase()) &&
+        onPrevUnlabeled
+      ) {
+        event.preventDefault();
+        onPrevUnlabeled();
       }
     };
 
@@ -118,6 +134,8 @@ export function useKeyboardNav({
     onToggleSrf,
     onTogglePed,
     onSetAllPathologiesZero,
+    onNextUnlabeled,
+    onPrevUnlabeled,
     hotkeys,
     enabled,
   ]);

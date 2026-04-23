@@ -14,6 +14,8 @@ const DEFAULT_SETTINGS: UserSettings = {
   hotkey_set_all_pathologies_zero: '0',
   hotkey_next: 'ArrowRight',
   hotkey_prev: 'ArrowLeft',
+  hotkey_next_unlabeled: 'n',
+  hotkey_prev_unlabeled: 'b',
 };
 
 interface SettingsContextType {

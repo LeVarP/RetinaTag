@@ -112,18 +112,6 @@ class BScanService:
     async def get_next_unlabeled_index(
         db: AsyncSession, scan_id: str, current_index: int
     ) -> Optional[int]:
-        """
-        Get the index of the next unlabeled B-scan.
-
-        Args:
-            db: Database session
-            scan_id: Scan identifier
-            current_index: Current B-scan index
-
-        Returns:
-            Next unlabeled B-scan index or None if all remaining are labeled
-        """
-        # Unlabeled navigation is based on marker-field completeness.
         result = await db.execute(
             select(BScan.bscan_index)
             .where(
@@ -132,6 +120,22 @@ class BScanService:
                 BScan.is_labeled == 0,
             )
             .order_by(BScan.bscan_index.asc())
+            .limit(1)
+        )
+        return result.scalar_one_or_none()
+
+    @staticmethod
+    async def get_prev_unlabeled_index(
+        db: AsyncSession, scan_id: str, current_index: int
+    ) -> Optional[int]:
+        result = await db.execute(
+            select(BScan.bscan_index)
+            .where(
+                BScan.scan_id == scan_id,
+                BScan.bscan_index < current_index,
+                BScan.is_labeled == 0,
+            )
+            .order_by(BScan.bscan_index.desc())
             .limit(1)
         )
         return result.scalar_one_or_none()
@@ -161,6 +165,9 @@ class BScanService:
         next_unlabeled = await BScanService.get_next_unlabeled_index(
             db, bscan.scan_id, bscan.bscan_index
         )
+        prev_unlabeled = await BScanService.get_prev_unlabeled_index(
+            db, bscan.scan_id, bscan.bscan_index
+        )
 
         # Build preview URL if requested
         preview_url = None
@@ -185,6 +192,7 @@ class BScanService:
             prev_index=prev_index,
             next_index=next_index,
             next_unlabeled_index=next_unlabeled,
+            prev_unlabeled_index=prev_unlabeled,
         )
 
     @staticmethod
