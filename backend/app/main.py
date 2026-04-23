@@ -10,7 +10,7 @@ from fastapi.responses import JSONResponse
 from pydantic import ValidationError
 
 from app.config import settings
-from app.db.database import init_db, dispose_engine, AsyncSessionLocal
+from app.db.database import init_db, dispose_engine, init_simple_db, dispose_simple_engine, AsyncSessionLocal
 from app.api.v1 import scans, bscans, stats, auth, users
 from app.services.auth_service import auth_service
 
@@ -21,9 +21,11 @@ async def lifespan(app: FastAPI):
     Application lifespan context manager.
     Handles startup and shutdown events.
     """
-    # Startup: Initialize database
+    # Startup: Initialize databases
     await init_db()
-    print("✓ Database initialized")
+    print("✓ Original database initialized")
+    await init_simple_db()
+    print("✓ Simple labels database initialized")
 
     # Seed default admin user
     async with AsyncSessionLocal() as session:
@@ -37,9 +39,10 @@ async def lifespan(app: FastAPI):
 
     yield
 
-    # Shutdown: Dispose database engine
+    # Shutdown: Dispose database engines
     await dispose_engine()
-    print("✓ Database connection closed")
+    await dispose_simple_engine()
+    print("✓ Database connections closed")
 
 
 # Create FastAPI application

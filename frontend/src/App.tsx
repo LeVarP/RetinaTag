@@ -8,6 +8,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 import { AuthProvider, useAuth } from '@/context/AuthContext';
 import { SettingsProvider } from '@/context/SettingsContext';
+import { DatabaseProvider } from '@/context/DatabaseContext';
+import { DatabaseSelector } from '@/components/DatabaseSelector';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import CookieConsent from '@/components/CookieConsent';
 import ScanListPage from '@/pages/ScanListPage';
@@ -59,12 +61,14 @@ function App() {
       <BrowserRouter>
         <AuthProvider>
           <SettingsProvider>
+            <DatabaseProvider>
             <div className="app">
               <header className="app-header">
                 <div className="container">
                   <h1>OCT B-Scan Labeler</h1>
                   <nav className="app-nav">
                     <Link to="/">Scans</Link>
+                    <DatabaseSelector />
                     <AuthNav />
                   </nav>
                 </div>
@@ -102,6 +106,7 @@ function App() {
 
               <CookieConsent />
             </div>
+            </DatabaseProvider>
           </SettingsProvider>
         </AuthProvider>
       </BrowserRouter>

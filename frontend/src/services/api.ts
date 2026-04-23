@@ -7,7 +7,7 @@ import axios, { AxiosInstance } from 'axios';
 import type {
   Scan, ScanStats, BScan, BScanListItem, BScanHealthUpdate, BScanPathologyUpdate, GlobalStats,
   AuthStatus, LoginCredentials, RegisterCredentials, PasswordChangeRequest,
-  User, UserSettings, UserSettingsUpdate,
+  User, UserSettings, UserSettingsUpdate, DatabaseMode,
 } from '@/types';
 
 /**
@@ -16,6 +16,17 @@ import type {
  * In production, adjust as needed.
  */
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api/v1';
+
+// Active database mode — updated by DatabaseContext via setActiveDatabase()
+let _activeDatabase: DatabaseMode = 'original';
+
+/** Switch the active database for all subsequent API calls. */
+export const setActiveDatabase = (db: DatabaseMode): void => {
+  _activeDatabase = db;
+};
+
+/** Return the currently active database mode. */
+export const getActiveDatabase = (): DatabaseMode => _activeDatabase;
 
 /**
  * Axios instance with default configuration.
@@ -27,6 +38,12 @@ const apiClient: AxiosInstance = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+});
+
+// Attach active database header to every request
+apiClient.interceptors.request.use((config) => {
+  config.headers['X-Database'] = _activeDatabase;
+  return config;
 });
 
 // Intercept 401 responses to signal auth expiry

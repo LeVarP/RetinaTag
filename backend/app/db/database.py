@@ -7,6 +7,7 @@ import csv
 import os
 from pathlib import Path
 from typing import AsyncGenerator, Optional
+from fastapi import Request
 from sqlalchemy import select, func, text
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 from sqlalchemy.pool import StaticPool
@@ -20,10 +21,19 @@ DATABASE_URL = os.getenv(
     "sqlite+aiosqlite:///./data/database/oct_labeler.db"
 )
 
-# Ensure database directory exists
+SIMPLE_DATABASE_URL = os.getenv(
+    "SIMPLE_DATABASE_URL",
+    "sqlite+aiosqlite:///./data/database/simple_labels.db"
+)
+
+# Ensure database directories exist
 db_path = DATABASE_URL.replace("sqlite+aiosqlite:///", "")
 db_dir = Path(db_path).parent
 db_dir.mkdir(parents=True, exist_ok=True)
+
+simple_db_path = SIMPLE_DATABASE_URL.replace("sqlite+aiosqlite:///", "")
+simple_db_dir = Path(simple_db_path).parent
+simple_db_dir.mkdir(parents=True, exist_ok=True)
 
 CSV_SEED_PATH = (
     Path(__file__).resolve().parent / "Overview info_all_sheets - Overview info_all_sheets.csv"
@@ -41,6 +51,22 @@ engine = create_async_engine(
 # Create async session factory
 AsyncSessionLocal = async_sessionmaker(
     engine,
+    class_=AsyncSession,
+    expire_on_commit=False,
+    autocommit=False,
+    autoflush=False,
+)
+
+# Simple labels database (separate engine/session)
+simple_engine = create_async_engine(
+    SIMPLE_DATABASE_URL,
+    echo=False,
+    connect_args={"check_same_thread": False},
+    poolclass=StaticPool,
+)
+
+SimpleAsyncSessionLocal = async_sessionmaker(
+    simple_engine,
     class_=AsyncSession,
     expire_on_commit=False,
     autocommit=False,
@@ -477,3 +503,137 @@ async def dispose_engine() -> None:
     Should be called on application shutdown.
     """
     await engine.dispose()
+
+
+async def get_data_db(request: Request) -> AsyncGenerator[AsyncSession, None]:
+    """
+    Dependency that returns a session for the database selected via X-Database header.
+    'original' (default) uses the main DB; 'simple' uses the simple labels DB.
+    """
+    db_mode = request.headers.get("X-Database", "original")
+    factory = SimpleAsyncSessionLocal if db_mode == "simple" else AsyncSessionLocal
+    async with factory() as session:
+        try:
+            yield session
+            await session.commit()
+        except Exception:
+            await session.rollback()
+            raise
+        finally:
+            await session.close()
+
+
+def _derive_label_simple(healthy: Optional[int]) -> int:
+    """Derive label for simple mode: -1=unhealthy(2), 1=healthy(1), 0=not labeled(0)."""
+    if healthy == 1:
+        return 1
+    if healthy == -1:
+        return 2
+    return 0
+
+
+async def _seed_simple_db_from_original() -> int:
+    """
+    Seed simple DB from original DB.
+    B-scans with any pathology marker=1 are marked unhealthy (-1); others are not labeled (0).
+    Returns number of B-scans inserted.
+    """
+    async with AsyncSessionLocal() as orig_session:
+        scans_result = await orig_session.execute(select(Scan))
+        all_scans = scans_result.scalars().all()
+
+        bscans_result = await orig_session.execute(select(BScan))
+        all_bscans = bscans_result.scalars().all()
+
+    async with SimpleAsyncSessionLocal() as simple_session:
+        for scan in all_scans:
+            simple_session.add(Scan(
+                scan_id=scan.scan_id,
+                created_at=scan.created_at,
+                updated_at=scan.updated_at,
+            ))
+
+        inserted = 0
+        for bscan in all_bscans:
+            is_pathological = any([
+                bscan.cyst == 1,
+                bscan.hard_exudate == 1,
+                bscan.srf == 1,
+                bscan.ped == 1,
+            ])
+            healthy = -1 if is_pathological else 0
+            label = _derive_label_simple(healthy)
+            is_labeled = 1 if healthy == -1 else 0
+
+            simple_session.add(BScan(
+                id=bscan.id,
+                scan_id=bscan.scan_id,
+                bscan_index=bscan.bscan_index,
+                bscan_key=bscan.bscan_key,
+                path=bscan.path,
+                healthy=healthy,
+                label=label,
+                is_labeled=is_labeled,
+                cyst=None,
+                hard_exudate=None,
+                srf=None,
+                ped=None,
+                updated_at=bscan.updated_at,
+            ))
+            inserted += 1
+
+        await simple_session.commit()
+        return inserted
+
+
+def _ensure_simple_bscan_columns(sync_conn) -> None:
+    """Add any missing columns to the simple DB bscans table (no backfill)."""
+    result = sync_conn.execute(text("PRAGMA table_info(bscans)"))
+    existing_columns = {row[1] for row in result}
+
+    required_columns = {
+        "bscan_key": "TEXT",
+        "cyst": "INTEGER",
+        "hard_exudate": "INTEGER",
+        "srf": "INTEGER",
+        "ped": "INTEGER",
+        "healthy": "INTEGER",
+        "is_labeled": "INTEGER NOT NULL DEFAULT 0",
+    }
+    for column_name, column_type in required_columns.items():
+        if column_name not in existing_columns:
+            sync_conn.execute(
+                text(f"ALTER TABLE bscans ADD COLUMN {column_name} {column_type}")
+            )
+
+    sync_conn.execute(
+        text(
+            "CREATE INDEX IF NOT EXISTS idx_scan_is_labeled ON bscans(scan_id, is_labeled)"
+        )
+    )
+
+
+async def init_simple_db() -> None:
+    """
+    Initialize simple labels database.
+    Creates tables, runs migrations, and seeds from original DB if empty.
+    """
+    async with simple_engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+        await conn.run_sync(_ensure_simple_bscan_columns)
+
+    async with SimpleAsyncSessionLocal() as session:
+        count_result = await session.execute(select(func.count(BScan.id)))
+        count = count_result.scalar() or 0
+
+    if count == 0:
+        inserted = await _seed_simple_db_from_original()
+        if inserted:
+            print(f"✓ Simple DB seeded from original: {inserted} B-scans")
+        else:
+            print("⚠ Simple DB seeding skipped (original DB empty)")
+
+
+async def dispose_simple_engine() -> None:
+    """Dispose simple labels database engine."""
+    await simple_engine.dispose()

@@ -88,9 +88,9 @@ class BScanHealthUpdate(BaseModel):
     """Schema for updating health status of a B-scan."""
     healthy: int = Field(
         ...,
-        ge=0,
+        ge=-1,
         le=1,
-        description="Health status value: 1=healthy, 0=not healthy",
+        description="Health status value: 1=healthy, 0=not healthy (original), -1=unhealthy (simple mode)",
     )
 
 

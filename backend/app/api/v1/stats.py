@@ -11,7 +11,7 @@ from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.dependencies import get_current_user
-from app.db.database import get_db
+from app.db.database import get_data_db
 from app.db.models import User
 from app.db.schemas import GlobalStats
 from app.services.stats_service import stats_service
@@ -20,7 +20,7 @@ router = APIRouter(prefix="/stats", tags=["stats"])
 
 
 @router.get("", response_model=GlobalStats)
-async def get_global_stats(db: AsyncSession = Depends(get_db)):
+async def get_global_stats(db: AsyncSession = Depends(get_data_db)):
     """
     Get global statistics across all scans.
 
@@ -35,7 +35,7 @@ async def get_global_stats(db: AsyncSession = Depends(get_db)):
 
 
 @router.get("/summary")
-async def get_scans_summary(db: AsyncSession = Depends(get_db)):
+async def get_scans_summary(db: AsyncSession = Depends(get_data_db)):
     """
     Get a summary of all scans with basic metrics.
 
@@ -48,7 +48,7 @@ async def get_scans_summary(db: AsyncSession = Depends(get_db)):
 
 @router.get("/export/bscans.csv")
 async def export_bscans_csv(
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_data_db),
     _user: User = Depends(get_current_user),
 ):
     """

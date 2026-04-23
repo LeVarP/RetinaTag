@@ -30,6 +30,7 @@ interface LabelingControlsProps {
   hotkeySrf?: string;
   hotkeyPed?: string;
   hotkeySetAllPathologiesZero?: string;
+  hidePathology?: boolean;
 }
 
 function LabelingControls({
@@ -56,6 +57,7 @@ function LabelingControls({
   hotkeySrf = '3',
   hotkeyPed = '4',
   hotkeySetAllPathologiesZero = '0',
+  hidePathology = false,
 }: LabelingControlsProps) {
   const isHealthy = currentLabel === Label.Healthy;
   const isUnhealthy = currentLabel === Label.Unhealthy;
@@ -105,62 +107,64 @@ function LabelingControls({
         </button>
       </div>
 
-      <div className={styles.pathologySection}>
-        <h4 className={styles.pathologyTitle}>Pathology Markers</h4>
-        <div className={styles.pathologyButtons}>
-          <button
-            className={`${styles.pathologyButton} ${hasCyst ? styles.activePathology : ''}`}
-            onClick={onToggleCyst}
-            disabled={isLoading}
-            aria-label="Toggle Cyst"
-          >
-            <span>Cyst</span>
-            <kbd className={styles.hotkey}>{hotkeyCyst.toUpperCase()}</kbd>
-          </button>
+      {!hidePathology && (
+        <div className={styles.pathologySection}>
+          <h4 className={styles.pathologyTitle}>Pathology Markers</h4>
+          <div className={styles.pathologyButtons}>
+            <button
+              className={`${styles.pathologyButton} ${hasCyst ? styles.activePathology : ''}`}
+              onClick={onToggleCyst}
+              disabled={isLoading}
+              aria-label="Toggle Cyst"
+            >
+              <span>Cyst</span>
+              <kbd className={styles.hotkey}>{hotkeyCyst.toUpperCase()}</kbd>
+            </button>
 
-          <button
-            className={`${styles.pathologyButton} ${hasHardExudate ? styles.activePathology : ''}`}
-            onClick={onToggleHardExudate}
-            disabled={isLoading}
-            aria-label="Toggle Hard exudate"
-          >
-            <span>Hard exudate</span>
-            <kbd className={styles.hotkey}>{hotkeyHardExudate.toUpperCase()}</kbd>
-          </button>
+            <button
+              className={`${styles.pathologyButton} ${hasHardExudate ? styles.activePathology : ''}`}
+              onClick={onToggleHardExudate}
+              disabled={isLoading}
+              aria-label="Toggle Hard exudate"
+            >
+              <span>Hard exudate</span>
+              <kbd className={styles.hotkey}>{hotkeyHardExudate.toUpperCase()}</kbd>
+            </button>
 
-          <button
-            className={`${styles.pathologyButton} ${hasSrf ? styles.activePathology : ''}`}
-            onClick={onToggleSrf}
-            disabled={isLoading}
-            aria-label="Toggle SRF"
-          >
-            <span>SRF</span>
-            <kbd className={styles.hotkey}>{hotkeySrf.toUpperCase()}</kbd>
-          </button>
+            <button
+              className={`${styles.pathologyButton} ${hasSrf ? styles.activePathology : ''}`}
+              onClick={onToggleSrf}
+              disabled={isLoading}
+              aria-label="Toggle SRF"
+            >
+              <span>SRF</span>
+              <kbd className={styles.hotkey}>{hotkeySrf.toUpperCase()}</kbd>
+            </button>
 
-          <button
-            className={`${styles.pathologyButton} ${hasPed ? styles.activePathology : ''}`}
-            onClick={onTogglePed}
-            disabled={isLoading}
-            aria-label="Toggle PED"
-          >
-            <span>PED</span>
-            <kbd className={styles.hotkey}>{hotkeyPed.toUpperCase()}</kbd>
-          </button>
+            <button
+              className={`${styles.pathologyButton} ${hasPed ? styles.activePathology : ''}`}
+              onClick={onTogglePed}
+              disabled={isLoading}
+              aria-label="Toggle PED"
+            >
+              <span>PED</span>
+              <kbd className={styles.hotkey}>{hotkeyPed.toUpperCase()}</kbd>
+            </button>
+          </div>
+          <div className={styles.pathologyActionRow}>
+            <button
+              type="button"
+              className={styles.pathologyResetButton}
+              onClick={onSetAllPathologiesZero}
+              disabled={isLoading}
+              aria-label="Set all pathology markers to 0"
+            >
+              <span>Set all pathologies = 0</span>
+              <kbd className={styles.hotkey}>{hotkeySetAllPathologiesZero.toUpperCase()}</kbd>
+            </button>
+          </div>
         </div>
-        <div className={styles.pathologyActionRow}>
-          <button
-            type="button"
-            className={styles.pathologyResetButton}
-            onClick={onSetAllPathologiesZero}
-            disabled={isLoading}
-            aria-label="Set all pathology markers to 0"
-          >
-            <span>Set all pathologies = 0</span>
-            <kbd className={styles.hotkey}>{hotkeySetAllPathologiesZero.toUpperCase()}</kbd>
-          </button>
-        </div>
-      </div>
+      )}
 
       {onOpenHotkeySettings && (
         <div className={styles.settingsRow}>
@@ -174,9 +178,11 @@ function LabelingControls({
         </div>
       )}
 
-      <p className={styles.hint}>
-        Any pathology marker = 1 automatically sets the scan to not healthy.
-      </p>
+      {!hidePathology && (
+        <p className={styles.hint}>
+          Any pathology marker = 1 automatically sets the scan to not healthy.
+        </p>
+      )}
     </div>
   );
 }

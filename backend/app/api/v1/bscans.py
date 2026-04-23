@@ -6,7 +6,7 @@ Handles B-scan labeling operations.
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.database import get_db
+from app.db.database import get_data_db
 from app.db.models import User
 from app.db.schemas import (
     BScanResponse,
@@ -14,7 +14,7 @@ from app.db.schemas import (
     BScanHealthUpdate,
     BScanPathologyUpdate,
 )
-from app.api.dependencies import get_current_user
+from app.api.dependencies import get_current_user, get_db_mode
 from app.services.labeling_service import labeling_service
 from app.services.bscan_service import bscan_service
 
@@ -25,7 +25,8 @@ router = APIRouter(prefix="/bscans", tags=["bscans"])
 async def update_bscan_label(
     bscan_id: int,
     label_update: BScanLabelUpdate,
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_data_db),
+    db_mode: str = Depends(get_db_mode),
     _user: User = Depends(get_current_user),
 ):
     """
@@ -45,7 +46,7 @@ async def update_bscan_label(
     try:
         # Update label
         updated_bscan = await labeling_service.update_label(
-            db, bscan_id, label_update.label
+            db, bscan_id, label_update.label, db_mode=db_mode
         )
 
         # Build response with navigation metadata
@@ -71,13 +72,14 @@ async def update_bscan_label(
 async def update_bscan_health(
     bscan_id: int,
     health_update: BScanHealthUpdate,
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_data_db),
+    db_mode: str = Depends(get_db_mode),
     _user: User = Depends(get_current_user),
 ):
-    """Update health status: 1=healthy, 0=not healthy."""
+    """Update health status. Original: 1=healthy, 0=not healthy. Simple: 1=healthy, -1=unhealthy."""
     try:
         updated_bscan = await labeling_service.update_health(
-            db, bscan_id, health_update.healthy
+            db, bscan_id, health_update.healthy, db_mode=db_mode
         )
 
         response = await bscan_service.build_bscan_response(
@@ -97,7 +99,8 @@ async def update_bscan_health(
 @router.delete("/{bscan_id}/label", response_model=BScanResponse)
 async def clear_bscan_label(
     bscan_id: int,
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_data_db),
+    db_mode: str = Depends(get_db_mode),
     _user: User = Depends(get_current_user),
 ):
     """
@@ -114,7 +117,7 @@ async def clear_bscan_label(
     """
     try:
         # Clear all labeling markers and health values.
-        updated_bscan = await labeling_service.clear_label(db, bscan_id)
+        updated_bscan = await labeling_service.clear_label(db, bscan_id, db_mode=db_mode)
 
         # Build response with navigation metadata
         response = await bscan_service.build_bscan_response(
@@ -132,7 +135,7 @@ async def clear_bscan_label(
 @router.get("/{bscan_id}", response_model=BScanResponse)
 async def get_bscan_by_id(
     bscan_id: int,
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_data_db),
 ):
     """
     Get a B-scan by its database ID.
@@ -164,14 +167,16 @@ async def get_bscan_by_id(
 async def update_bscan_pathology(
     bscan_id: int,
     pathology_update: BScanPathologyUpdate,
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_data_db),
+    db_mode: str = Depends(get_db_mode),
     _user: User = Depends(get_current_user),
 ):
     """
     Update pathology markers for a B-scan.
 
     Health rule:
-    - if any pathology marker is 1 -> healthy becomes 0 (not healthy)
+    - if any pathology marker is 1 -> healthy becomes 0 (not healthy) in original mode,
+      or -1 (unhealthy) in simple mode
     - otherwise health value is not auto-promoted to healthy
     """
     try:
@@ -182,6 +187,7 @@ async def update_bscan_pathology(
             hard_exudate=pathology_update.hard_exudate,
             srf=pathology_update.srf,
             ped=pathology_update.ped,
+            db_mode=db_mode,
         )
 
         response = await bscan_service.build_bscan_response(

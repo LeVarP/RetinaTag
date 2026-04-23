@@ -9,6 +9,7 @@ import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import { api } from '@/services/api';
 import { DEFAULT_HOTKEYS, type KeyboardHotkeys } from '@/types';
 import { useSettings } from '@/context/SettingsContext';
+import { useDatabase } from '@/context/DatabaseContext';
 import { useKeyboardNav } from '@/hooks/useKeyboardNav';
 import { usePrefetch } from '@/hooks/usePrefetch';
 import { useLabeling } from '@/hooks/useLabeling';
@@ -22,6 +23,8 @@ function LabelingPage() {
   const navigate = useNavigate();
 
   const { settings } = useSettings();
+  const { activeDatabase } = useDatabase();
+  const isSimpleMode = activeDatabase === 'simple';
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [imageMaxWidth, setImageMaxWidth] = useState(450);
@@ -75,6 +78,7 @@ function LabelingPage() {
     scanId: scanId!,
     bscanId: bscan?.id,
     currentIndex,
+    dbMode: activeDatabase,
   });
 
   const toggleCyst = () => {
@@ -128,17 +132,17 @@ function LabelingPage() {
     }
   };
 
-  // Keyboard navigation
+  // Keyboard navigation (pathology hotkeys disabled in simple mode)
   useKeyboardNav({
     onNext: handleNext,
     onPrev: handlePrev,
     onLabelHealthy: handleLabelHealthy,
     onLabelUnhealthy: labelAsUnhealthy,
-    onToggleCyst: toggleCyst,
-    onToggleHardExudate: toggleHardExudate,
-    onToggleSrf: toggleSrf,
-    onTogglePed: togglePed,
-    onSetAllPathologiesZero: setAllPathologiesZero,
+    onToggleCyst: isSimpleMode ? undefined : toggleCyst,
+    onToggleHardExudate: isSimpleMode ? undefined : toggleHardExudate,
+    onToggleSrf: isSimpleMode ? undefined : toggleSrf,
+    onTogglePed: isSimpleMode ? undefined : togglePed,
+    onSetAllPathologiesZero: isSimpleMode ? undefined : setAllPathologiesZero,
     hotkeys,
     enabled: !!bscan && !isLabeling,
   });
@@ -187,7 +191,12 @@ function LabelingPage() {
         <Link to="/" className={styles.backLink}>
           ← Back to Scans
         </Link>
-        <h2 className={styles.title}>Labeling: {scanId}</h2>
+        <h2 className={styles.title}>
+          Labeling: {scanId}
+          {isSimpleMode && (
+            <span className={styles.dbModeBadge}>Simple DB</span>
+          )}
+        </h2>
       </div>
 
       <div className={styles.content}>
@@ -238,6 +247,7 @@ function LabelingPage() {
             hotkeySrf={settings.hotkey_srf}
             hotkeyPed={settings.hotkey_ped}
             hotkeySetAllPathologiesZero={hotkeys.setAllPathologiesZero}
+            hidePathology={isSimpleMode}
           />
         </div>
       </div>

@@ -1,0 +1,114 @@
+.wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* Badge button */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid transparent;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity 0.15s;
+}
+
+.badge:hover {
+  opacity: 0.85;
+}
+
+/* Per-mode colours */
+.badge.original {
+  background: #e3f0fc;
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.badge.simple {
+  background: #fff3e0;
+  color: #e65100;
+  border-color: var(--color-warning);
+}
+
+/* Status dot */
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.badge.original .dot { background: var(--color-primary); }
+.badge.simple   .dot { background: var(--color-warning); }
+
+.chevron {
+  font-size: 10px;
+  margin-left: 2px;
+}
+
+/* Dropdown */
+.dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  min-width: 220px;
+  background: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  z-index: 100;
+  overflow: hidden;
+}
+
+.option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 14px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.1s;
+}
+
+.option:hover {
+  background: var(--color-surface);
+}
+
+.option.active {
+  background: #f0f7ff;
+}
+
+/* Dot inside dropdown option */
+.optionDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.optionDot.original { background: var(--color-primary); }
+.optionDot.simple   { background: var(--color-warning); }
+
+.optionText {
+  display: flex;
+  flex-direction: column;
+}
+
+.optionLabel {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.optionDesc {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}

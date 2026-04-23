@@ -83,7 +83,7 @@ class ScanService:
                 func.count(BScan.id).label("total_bscans"),
                 func.sum(case((BScan.is_labeled == 1, 1), else_=0)).label("labeled_count"),
                 func.sum(case((BScan.healthy == 1, 1), else_=0)).label("healthy_count"),
-                func.sum(case((BScan.healthy == 0, 1), else_=0)).label("not_healthy_count"),
+                func.sum(case((BScan.label == 2, 1), else_=0)).label("not_healthy_count"),
                 func.sum(case((BScan.healthy.is_(None), 1), else_=0)).label("not_necessary_healthy_count"),
                 func.sum(case((BScan.cyst == 1, 1), else_=0)).label("cyst_positive"),
                 func.sum(case((BScan.hard_exudate == 1, 1), else_=0)).label("hard_exudate_positive"),

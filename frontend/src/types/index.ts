@@ -99,10 +99,35 @@ export interface BScanListItem {
 
 /**
  * Request body for updating a B-scan label.
+ * Original mode: 0=not healthy, 1=healthy.
+ * Simple mode: -1=unhealthy, 1=healthy.
  */
 export interface BScanHealthUpdate {
-  healthy: 0 | 1;
+  healthy: -1 | 0 | 1;
 }
+
+// ===== DATABASE SELECTION =====
+
+export type DatabaseMode = 'original' | 'simple';
+
+export interface DatabaseInfo {
+  id: DatabaseMode;
+  label: string;
+  description: string;
+}
+
+export const DATABASES: DatabaseInfo[] = [
+  {
+    id: 'original',
+    label: 'Original DB',
+    description: 'Full labeling with pathology markers',
+  },
+  {
+    id: 'simple',
+    label: 'Simple DB',
+    description: 'Binary healthy / unhealthy labeling',
+  },
+];
 
 export interface BScanPathologyUpdate {
   cyst?: 0 | 1;

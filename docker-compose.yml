@@ -12,6 +12,7 @@ services:
       - ${OCT_DATA_PATH:-/data/oct-500}:/mnt/oct-data:ro
     environment:
       - DATABASE_URL=sqlite+aiosqlite:////app/data/database/oct_labeler.db
+      - SIMPLE_DATABASE_URL=sqlite+aiosqlite:////app/data/database/simple_labels.db
       - DATA_DIR=/app/data
       - CACHE_DIR=/app/data/cache
     healthcheck:

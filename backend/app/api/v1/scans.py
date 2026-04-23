@@ -9,7 +9,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import FileResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.database import get_db
+from app.db.database import get_data_db
 from app.db.schemas import ScanResponse, ScanStats, BScanResponse, BScanListItem
 from app.services.scan_service import scan_service
 from app.services.bscan_service import bscan_service
@@ -19,7 +19,7 @@ router = APIRouter(prefix="/scans", tags=["scans"])
 
 
 @router.get("", response_model=List[ScanResponse])
-async def list_scans(db: AsyncSession = Depends(get_db)):
+async def list_scans(db: AsyncSession = Depends(get_data_db)):
     """
     List all scans with embedded progress statistics.
 
@@ -31,7 +31,7 @@ async def list_scans(db: AsyncSession = Depends(get_db)):
 
 
 @router.get("/{scan_id}/stats", response_model=ScanStats)
-async def get_scan_stats(scan_id: str, db: AsyncSession = Depends(get_db)):
+async def get_scan_stats(scan_id: str, db: AsyncSession = Depends(get_data_db)):
     """
     Get detailed statistics for a specific scan.
 
@@ -58,7 +58,7 @@ async def get_scan_stats(scan_id: str, db: AsyncSession = Depends(get_db)):
 
 @router.get("/{scan_id}/bscans/{bscan_index}", response_model=BScanResponse)
 async def get_bscan_by_index(
-    scan_id: str, bscan_index: int, db: AsyncSession = Depends(get_db)
+    scan_id: str, bscan_index: int, db: AsyncSession = Depends(get_data_db)
 ):
     """
     Get a B-scan by scan ID and index with navigation metadata.
@@ -96,7 +96,7 @@ async def get_bscan_by_index(
 
 @router.get("/{scan_id}/bscans/{bscan_index}/preview")
 async def get_bscan_preview(
-    scan_id: str, bscan_index: int, db: AsyncSession = Depends(get_db)
+    scan_id: str, bscan_index: int, db: AsyncSession = Depends(get_data_db)
 ):
     """
     Get the preview image for a B-scan.
@@ -174,7 +174,7 @@ async def get_bscan_preview(
 
 
 @router.get("/{scan_id}/bscans", response_model=List[BScanListItem])
-async def list_bscans_for_scan(scan_id: str, db: AsyncSession = Depends(get_db)):
+async def list_bscans_for_scan(scan_id: str, db: AsyncSession = Depends(get_data_db)):
     """List all B-scans for a scan with marker/health values."""
     scan = await scan_service.get_scan_by_id(db, scan_id)
     if not scan:

@@ -14,6 +14,7 @@ class Settings(BaseSettings):
 
     # Database
     database_url: str = "sqlite+aiosqlite:///./data/database/oct_labeler.db"
+    simple_database_url: str = "sqlite+aiosqlite:///./data/database/simple_labels.db"
 
     # Data directories
     data_dir: Path = Path("./data")

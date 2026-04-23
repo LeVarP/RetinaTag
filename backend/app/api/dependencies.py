@@ -1,5 +1,5 @@
 """
-FastAPI dependency functions for authentication.
+FastAPI dependency functions for authentication and database selection.
 """
 
 from typing import Optional
@@ -7,7 +7,7 @@ from typing import Optional
 from fastapi import Depends, HTTPException, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.database import get_db
+from app.db.database import get_db, get_data_db
 from app.db.models import User
 from app.services.auth_service import auth_service
 
@@ -50,3 +50,9 @@ async def require_admin(user: User = Depends(get_current_user)) -> User:
             detail="Admin access required",
         )
     return user
+
+
+async def get_db_mode(request: Request) -> str:
+    """Return active database mode from X-Database request header ('original' or 'simple')."""
+    mode = request.headers.get("X-Database", "original")
+    return mode if mode in ("original", "simple") else "original"

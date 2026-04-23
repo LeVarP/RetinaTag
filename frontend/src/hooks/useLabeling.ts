@@ -5,24 +5,25 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/services/api';
-import { Label, type BScan, type BScanPathologyUpdate } from '@/types';
+import { Label, type BScan, type BScanPathologyUpdate, type DatabaseMode } from '@/types';
 
 interface UseLabelingProps {
   scanId: string;
   bscanId: number | undefined;
   currentIndex: number;
+  dbMode?: DatabaseMode;
   onSuccess?: () => void;
 }
 
 /**
  * Hook for managing label updates with optimistic UI.
  */
-export function useLabeling({ scanId, bscanId, currentIndex, onSuccess }: UseLabelingProps) {
+export function useLabeling({ scanId, bscanId, currentIndex, dbMode = 'original', onSuccess }: UseLabelingProps) {
   const queryClient = useQueryClient();
   const queryKey = ['bscan', scanId, currentIndex] as const;
 
   const updateLabelMutation = useMutation({
-    mutationFn: ({ healthy }: { healthy: 0 | 1 }) => {
+    mutationFn: ({ healthy }: { healthy: -1 | 0 | 1 }) => {
       if (!bscanId) {
         return Promise.reject(new Error('No B-scan ID'));
       }
@@ -37,11 +38,12 @@ export function useLabeling({ scanId, bscanId, currentIndex, onSuccess }: UseLab
 
       // Optimistically update
       if (previousBScan) {
+        const isLabeled = dbMode === 'simple' ? healthy !== 0 : healthy === 0 || healthy === 1;
         queryClient.setQueryData(queryKey, {
           ...previousBScan,
           label: healthy === 1 ? Label.Healthy : Label.Unhealthy,
           healthy,
-          is_labeled: true,
+          is_labeled: isLabeled,
         });
       }
 
@@ -130,7 +132,8 @@ export function useLabeling({ scanId, bscanId, currentIndex, onSuccess }: UseLab
   };
 
   const labelAsUnhealthy = () => {
-    updateLabelMutation.mutate({ healthy: 0 });
+    // Simple mode uses -1 for unhealthy; original uses 0.
+    updateLabelMutation.mutate({ healthy: dbMode === 'simple' ? -1 : 0 });
   };
 
   const clearLabelMutation = useMutation({
